@@ -44,7 +44,7 @@ namespace OBSControl.HarmonyPatches
             if (Plugin.config.LevelStartDelay == 0)
             {
                 RecordingController.instance.StartRecordingLevel();
-                SharedCoroutineStarter.instance.StartCoroutine(RecordingController.instance.GameStatusSetup());
+                SharedCoroutineStarter.Instance.StartCoroutine(RecordingController.instance.GameStatusSetup());
                 return true;
             }
             if (DelayedStartActive && WaitingToStart)
@@ -62,7 +62,7 @@ namespace OBSControl.HarmonyPatches
             StandardLevelDetailView levelView = AccessDetailView(ref detailViewController);
             if (levelView != null)
                 levelView.actionButton.interactable = false;
-            SharedCoroutineStarter.instance.StartCoroutine(DelayedLevelStart(__instance, beforeSceneSwitchCallback, practice, levelView?.actionButton));
+            SharedCoroutineStarter.Instance.StartCoroutine(DelayedLevelStart(__instance, beforeSceneSwitchCallback, practice, levelView?.actionButton));
             return false;
         }
 
@@ -81,7 +81,7 @@ namespace OBSControl.HarmonyPatches
             //playButton.interactable = true;
             StartLevel(coordinator, beforeSceneSwitchCallback, practice);
             if (RecordingController.instance != null)
-                SharedCoroutineStarter.instance.StartCoroutine(RecordingController.instance.GameStatusSetup());
+                SharedCoroutineStarter.Instance.StartCoroutine(RecordingController.instance.GameStatusSetup());
         }
 
         private static StartLevelDelegate? _startLevel;

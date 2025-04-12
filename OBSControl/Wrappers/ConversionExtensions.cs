@@ -41,10 +41,9 @@ namespace OBSControl.Wrappers
         {
             return endState switch
             {
-                LevelCompletionResults.LevelEndStateType.None => LevelEndState.None,
                 LevelCompletionResults.LevelEndStateType.Cleared => LevelEndState.Cleared,
                 LevelCompletionResults.LevelEndStateType.Failed => LevelEndState.Failed,
-                _ => LevelEndState.None,
+                _ => LevelEndState.Incomplete,
             };
         }
 
@@ -55,7 +54,6 @@ namespace OBSControl.Wrappers
                 LevelCompletionResults.LevelEndAction.None => SongEndAction.None,
                 LevelCompletionResults.LevelEndAction.Quit => SongEndAction.Quit,
                 LevelCompletionResults.LevelEndAction.Restart => SongEndAction.Restart,
-                LevelCompletionResults.LevelEndAction.LostConnection => SongEndAction.LostConnection,
                 _ => SongEndAction.None,
             };
         }

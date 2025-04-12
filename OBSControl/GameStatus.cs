@@ -9,50 +9,36 @@ namespace OBSControl
 {
     public static class GameStatus
     {
-        private static GameplayModifiersModelSO? _gpModSO;
-        private static GameplayCoreSceneSetupData? _gameSetupData;
+        private static GameplayModifiersModelSO? gpModSo;
         public static int MaxScore;
         public static int MaxModifiedScore;
 
-        public static GameplayCoreSceneSetupData? GameSetupData
+        private static GameplayCoreSceneSetupData? GameplayCoreSceneSetupData =>
+            !BS_Utils.Plugin.LevelData.IsSet ? null
+            : BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData;
+
+        public static BeatmapLevel? BeatmapLevel => GameplayCoreSceneSetupData?.beatmapLevel;
+        
+        public static BeatmapKey? BeatmapKey => GameplayCoreSceneSetupData?.beatmapKey;
+
+        public static IReadonlyBeatmapData? BeatmapData => GameplayCoreSceneSetupData?.transformedBeatmapData;
+        
+        public static GameplayModifiersModelSO? GameplayModifiersModel
         {
             get
             {
-                if (BS_Utils.Plugin.LevelData.IsSet)
-                    _gameSetupData = BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData;
-                return _gameSetupData;
-            }
-        }
-
-        public static IDifficultyBeatmap? DifficultyBeatmap
-        {
-            get { return GameSetupData?.difficultyBeatmap; }
-        }
-
-        public static IBeatmapLevel? LevelInfo
-        {
-            get
-            {
-                return DifficultyBeatmap?.level;
-            }
-        }
-
-        public static GameplayModifiersModelSO? GpModSO
-        {
-            get
-            {
-                if (_gpModSO == null)
+                if (gpModSo == null)
                 {
                     Logger.log?.Debug("GameplayModifersModelSO is null, getting new one");
-                    _gpModSO = Resources.FindObjectsOfTypeAll<GameplayModifiersModelSO>().FirstOrDefault();
+                    gpModSo = Resources.FindObjectsOfTypeAll<GameplayModifiersModelSO>().FirstOrDefault();
                 }
-                if (_gpModSO == null)
+                if (gpModSo == null)
                 {
                     Logger.log?.Warn("GameplayModifersModelSO is still null");
                 }
                 //else
                 //    Logger.Debug("Found GameplayModifersModelSO");
-                return _gpModSO;
+                return gpModSo;
             }
         }
 
@@ -60,19 +46,21 @@ namespace OBSControl
         {
             try
             {
-                MaxScore = ScoreModel.MaxRawScoreForNumberOfNotes(DifficultyBeatmap?.beatmapData.cuttableNotesType ?? 0);
-                Logger.log?.Debug($"MaxScore: {MaxScore}");
                 // TODO: Handle no-fail properly
-                MaxModifiedScore = GameStatus.GpModSO?.GetModifiedScoreForGameplayModifiers(GameStatus.MaxScore, GameSetupData?.gameplayModifiers, 1) ?? 0;
+                if (GameplayCoreSceneSetupData == null) return;
+                MaxScore = ScoreModel.ComputeMaxMultipliedScoreForBeatmap(GameplayCoreSceneSetupData.transformedBeatmapData);
+                Logger.log?.Debug($"MaxScore: {MaxScore}");
+                
+                if (GameplayModifiersModel == null) return;
+                var gameplayModifierList = GameplayModifiersModel.CreateModifierParamsList(GameplayCoreSceneSetupData.gameplayModifiers);
+                MaxModifiedScore = GameplayModifiersModel.GetModifiedScoreForGameplayModifiers(MaxScore, gameplayModifierList, 1);
                 Logger.log?.Debug($"MaxModifiedScore: {MaxModifiedScore}");
             }
-#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
             {
                 Logger.log?.Error($"Error getting max scores: {ex}");
                 Logger.log?.Debug(ex);
             }
-#pragma warning restore CA1031 // Do not catch general exception types
         }
     }
 }

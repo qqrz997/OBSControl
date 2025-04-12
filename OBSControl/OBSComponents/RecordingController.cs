@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using BS_Utils.Utilities;
 using UnityEngine;
 #nullable enable
 namespace OBSControl.OBSComponents
@@ -307,41 +308,58 @@ namespace OBSControl.OBSComponents
             {
                 if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "MenuCore")
                     return false;
-                return !(!BS_Utils.Plugin.LevelData.IsSet || GameStatus.GpModSO == null);
+                return !(!BS_Utils.Plugin.LevelData.IsSet || GameStatus.GameplayModifiersModel == null);
             });
             yield return waitForData;
             GameStatus.Setup();
-            BS_Utils.Plugin.LevelDidFinishEvent += OnLevelFinished;
+            InitEvents();
         }
 
-        private void OnLevelFinished(StandardLevelScenesTransitionSetupDataSO levelScenesTransitionSetupDataSO, LevelCompletionResults levelCompletionResults)
+        private void InitEvents()
         {
-            BS_Utils.Plugin.LevelDidFinishEvent -= OnLevelFinished;
+            BSEvents.levelCleared += OnLevelFinished;
+            BSEvents.levelFailed += OnLevelFinished;
+            BSEvents.levelQuit += OnLevelFinished;
+            BSEvents.levelRestarted += OnLevelFinished;
+        }
+
+        private void ClearEvents()
+        {
+            BSEvents.levelCleared -= OnLevelFinished;
+            BSEvents.levelFailed -= OnLevelFinished;
+            BSEvents.levelQuit -= OnLevelFinished;
+            BSEvents.levelRestarted -= OnLevelFinished;
+        }
+
+        private void OnLevelFinished(StandardLevelScenesTransitionSetupDataSO setupData, LevelCompletionResults levelCompletionResults)
+        {
+            ClearEvents();
             string? newFileName = null;
+            
             try
             {
                 PlayerLevelStatsData? stats = null;
-                if (OBSController.instance?.PlayerData != null && GameStatus.LevelInfo != null && GameStatus.DifficultyBeatmap != null)
+                if (OBSController.instance?.PlayerData != null && GameStatus.BeatmapLevel != null && GameStatus.BeatmapKey != null)
                 {
-                    stats = OBSController.instance.PlayerData.playerData.GetPlayerLevelStatsData(
-                        GameStatus.LevelInfo.levelID, GameStatus.DifficultyBeatmap.difficulty, GameStatus.DifficultyBeatmap.parentDifficultyBeatmapSet.beatmapCharacteristic);
+                    stats = OBSController.instance.PlayerData.playerData.GetOrCreatePlayerLevelStatsData(
+                        GameStatus.BeatmapLevel.levelID,
+                        GameStatus.BeatmapKey.Value.difficulty,
+                        GameStatus.BeatmapKey.Value.beatmapCharacteristic);
                 }
 
-                Wrappers.LevelCompletionResultsWrapper resultsWrapper = new Wrappers.LevelCompletionResultsWrapper(levelCompletionResults, stats?.playCount ?? 0, GameStatus.MaxModifiedScore);
-                if (GameStatus.DifficultyBeatmap != null)
+                var resultsWrapper = new LevelCompletionResultsWrapper(levelCompletionResults, stats?.playCount ?? 0, GameStatus.MaxModifiedScore);
+                if (GameStatus.BeatmapLevel != null && GameStatus.BeatmapKey != null)
                 {
                     newFileName = Utilities.FileRenaming.GetFilenameString(Plugin.config.RecordingFileFormat,
-                        new BeatmapLevelWrapper(GameStatus.DifficultyBeatmap), resultsWrapper, 
+                        new LevelWrapper(GameStatus.BeatmapLevel, GameStatus.BeatmapKey.Value), resultsWrapper, 
                         Plugin.config.InvalidCharacterSubstitute, Plugin.config.ReplaceSpacesWith);
                 }
             }
-#pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
             {
                 Logger.log?.Error($"Error generating new file name: {ex}");
                 Logger.log?.Debug(ex);
             }
-#pragma warning restore CA1031 // Do not catch general exception types
             StopRecordingTask = TryStopRecordingAsync(newFileName, false);
         }
 
@@ -366,8 +384,6 @@ namespace OBSControl.OBSComponents
                     recordingCurrentLevel = false;
                     RenameLastRecording(RenameString);
                     RenameString = null;
-                    break;
-                default:
                     break;
             }
         }
@@ -397,8 +413,8 @@ namespace OBSControl.OBSComponents
         /// </summary>
         private void OnEnable()
         {
-            BS_Utils.Plugin.LevelDidFinishEvent -= OnLevelFinished;
-            BS_Utils.Plugin.LevelDidFinishEvent += OnLevelFinished;
+            ClearEvents();
+            InitEvents();
             if (!LevelDelayPatch.IsApplied)
                 LevelDelayPatch.ApplyPatch();
         }
@@ -410,7 +426,7 @@ namespace OBSControl.OBSComponents
         {
             if (recordingCurrentLevel)
                 StopRecordingTask = TryStopRecordingAsync(string.Empty, true);
-            BS_Utils.Plugin.LevelDidFinishEvent -= OnLevelFinished;
+            ClearEvents();
             if (LevelDelayPatch?.IsApplied ?? false)
                 LevelDelayPatch.RemovePatch();
         }

@@ -13,6 +13,9 @@ using UnityEngine;
 using OBSControl.OBSComponents;
 using IPALogger = IPA.Logging.Logger;
 using BeatSaberMarkupLanguage.Settings;
+using BeatSaberMarkupLanguage.Util;
+using Object = UnityEngine.Object;
+
 #nullable enable
 namespace OBSControl
 {
@@ -34,13 +37,9 @@ namespace OBSControl
             Logger.log?.Debug("Logger initialized.");
             config = conf.Generated<PluginConfig>();
             OBSWebsocketDotNet.OBSLogger.SetLogger(new OBSLogger());
-            BSMLSettings.instance.AddSettingsMenu("OBSControl", "OBSControl.UI.SettingsView.bsml", config);
+            MainMenuAwaiter.MainMenuInitializing += OnMenuLoad;
         }
-        #region IDisablable
 
-        /// <summary>
-        /// Called when the plugin is enabled (including when the game starts if the plugin is enabled).
-        /// </summary>
         [OnEnable]
         public void OnEnable()
         {
@@ -52,36 +51,30 @@ namespace OBSControl
             Enabled = true;
         }
 
-        /// <summary>
-        /// Called when the plugin is disabled. It is important to clean up any Harmony patches, GameObjects, and Monobehaviours here.
-        /// The game should be left in a state as if the plugin was never started.
-        /// </summary>
         [OnDisable]
         public void OnDisable()
         {
             Logger.log?.Debug("OnDisable()");
             RemoveHarmonyPatches();
-            GameObject.Destroy(OBSController.instance?.gameObject);
-            GameObject.Destroy(RecordingController.instance?.gameObject);
+            Object.Destroy(OBSController.instance?.gameObject);
+            Object.Destroy(RecordingController.instance?.gameObject);
             Enabled = false;
         }
-        #endregion
 
-        /// <summary>
-        /// Attempts to apply all the Harmony patches in this assembly.
-        /// </summary>
-        public static void ApplyHarmonyPatches()
+        private static void ApplyHarmonyPatches()
         {
             HarmonyPatches.HarmonyManager.ApplyDefaultPatches();
         }
 
-        /// <summary>
-        /// Attempts to remove all the Harmony patches that used our HarmonyId.
-        /// </summary>
-        public static void RemoveHarmonyPatches()
+        private static void RemoveHarmonyPatches()
         {
             // Removes all patches with this HarmonyId
             HarmonyPatches.HarmonyManager.UnpatchAll();
+        }
+
+        private static void OnMenuLoad()
+        {
+            BSMLSettings.Instance.AddSettingsMenu("OBSControl", "OBSControl.UI.SettingsView.bsml", config);
         }
 
         [OnExit]
@@ -89,9 +82,9 @@ namespace OBSControl
         {
             Logger.log?.Debug("OnApplicationQuit");
             if (RecordingController.instance != null)
-                GameObject.Destroy(RecordingController.instance);
+                Object.Destroy(RecordingController.instance);
             if (OBSController.instance != null)
-                GameObject.Destroy(OBSController.instance);
+                Object.Destroy(OBSController.instance);
         }
     }
 }

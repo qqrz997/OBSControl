@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.IO;
 using System.Globalization;
+using IPA.Utilities.Async;
+
 #nullable enable
 namespace OBSControl
 {
@@ -22,7 +24,7 @@ namespace OBSControl
         private OBSWebsocket? _obs;
         public OBSWebsocket? Obs
         {
-            get { return _obs; }
+            get => _obs;
             protected set
             {
                 if (_obs == value)
@@ -261,7 +263,7 @@ namespace OBSControl
             try
             {
                 string[] availableScenes = (await obs.GetSceneList().ConfigureAwait(false)).Scenes.Select(s => s.Name).ToArray();
-                HMMainThreadDispatcher.instance.Enqueue(() =>
+                await UnityMainThreadTaskScheduler.Factory.StartNew(() =>
                 {
                     Plugin.config.UpdateSceneOptions(availableScenes);
                 });
@@ -281,7 +283,7 @@ namespace OBSControl
             {
                 string[] availableScenes = (await obs.GetSceneList().ConfigureAwait(false)).Scenes.Select(s => s.Name).ToArray();
                 Logger.log?.Info($"OBS scene list changed: {string.Join(", ", availableScenes)}");
-                HMMainThreadDispatcher.instance.Enqueue(() =>
+                await UnityMainThreadTaskScheduler.Factory.StartNew(() =>
                 {
                     Plugin.config.UpdateSceneOptions(availableScenes);
                 });

@@ -41,7 +41,7 @@ namespace OBSControl.Wrappers
 
 	public enum LevelEndState
 	{
-		None = 0,
+		Incomplete = 0,
 		Cleared = 1,
 		Failed = 2
 	}

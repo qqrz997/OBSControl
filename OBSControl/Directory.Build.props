@@ -1,9 +1,35 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- This file contains project properties used by the build. -->
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <DisableCopyToPlugins>true</DisableCopyToPlugins>
-    <DisableZipRelease>true</DisableZipRelease>
-  </PropertyGroup>
+<Project>
+
+    <!-- Plugin Metadata -->
+    <PropertyGroup>
+        <PluginId>OBSControl</PluginId>
+        <PluginName>OBSControl</PluginName>
+        <Authors>Zingabopp</Authors>
+        <Version>1.2.1</Version>
+        <GameVersion>1.40.3</GameVersion>
+        <Description>Automatically record videos using OBS Websocket.</Description>
+        <ProjectSource>https://github.com/qqrz997/OBSControl</ProjectSource>
+        <!--<PluginIcon></PluginIcon>-->
+        <!--<ProjectHome></ProjectHome>-->
+        <!--<DonateUrl></DonateUrl>-->
+    </PropertyGroup>
+
+    <!-- Plugin Dependencies -->
+    <ItemGroup>
+        <DependsOn Include="BSIPA" Version="^4.3.5"/>
+        <DependsOn Include="BeatSaberMarkupLanguage" Version="^1.12.0"/>
+        <DependsOn Include="BS Utils" Version="^1.7.0"/>
+    </ItemGroup>
+
+    <PropertyGroup>
+        <BSMTProjectType>BSIPA</BSMTProjectType>
+        <GenerateManifest>true</GenerateManifest>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)' != 'Release'">
+        <DisableZipRelease>true</DisableZipRelease>
+    </PropertyGroup>
+
 </Project>

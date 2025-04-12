@@ -1,183 +1,127 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="OBSControl.csproj.user" Condition="Exists('OBSControl.csproj.user')" />
+  
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{51B976F3-3672-4A64-9C23-7FE3F8D4AC79}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>OBSControl</RootNamespace>
-    <AssemblyName>OBSControl</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <PathMap Condition="'$(SolutionDir)' != ''">$(SolutionDir)=C:\</PathMap>
-    <DebugType>portable</DebugType>
-    <BeatSaberReferences>$(SolutionDir)Refs</BeatSaberReferences>
-    <BeatSaberDir>$(ProjectDir)References</BeatSaberDir>
-    <RuntimeIdentifiers>win</RuntimeIdentifiers>
-    <LangVersion>8.0</LangVersion>
+    <TargetFramework>net472</TargetFramework>
+    <!-- Some features of the latest version of C# aren't available in Beat Saber. Refer to the unity docs for info -->
+    <!-- https://docs.unity3d.com/2022.3/Documentation/Manual/CSharpCompiler.html -->
+    <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <EnableFrameworkPathOverride>true</EnableFrameworkPathOverride>
+    <FrameworkPathOverride>$(BeatSaberDir)\Beat Saber_Data\Managed</FrameworkPathOverride>
+    <MarkPackageReferencesAsExternallyResolved>false</MarkPackageReferencesAsExternallyResolved>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(NCrunch)' == '1' ">
-    <DisableCopyToPlugins>True</DisableCopyToPlugins>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <DebugType>portable</DebugType>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>portable</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>
-    </DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+  
   <ItemGroup>
-    <Reference Include="BeatmapCore, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <Private>False</Private>
-      <HintPath>$(BeatSaberReferences)\Beat Saber_Data\Managed\BeatmapCore.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
-    </Reference>
-    <Reference Include="BSML">
-      <HintPath>$(BeatSaberReferences)\Plugins\BSML.dll</HintPath>
-      <Private>True</Private>
-      <SpecificVersion>False</SpecificVersion>
-    </Reference>
-    <Reference Include="BS_Utils">
-      <HintPath>$(BeatSaberReferences)\Plugins\BS_Utils.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="GameplayCore, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <Private>False</Private>
-      <HintPath>$(BeatSaberReferences)\Beat Saber_Data\Managed\GameplayCore.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
-    </Reference>
-    <Reference Include="HMLib">
-      <HintPath>$(BeatSaberReferences)\Beat Saber_Data\Managed\HMLib.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>$(BeatSaberReferences)\Beat Saber_Data\Managed\netstandard.dll</HintPath>
-      <Private>False</Private>
-      <SpecificVersion>False</SpecificVersion>
-    </Reference>
-    <Reference Include="System">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Core">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Web" />
-    <Reference Include="System.Xml.Linq">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Data.DataSetExtensions">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Data">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System.Xml">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Main">
-      <HintPath>$(BeatSaberReferences)\Beat Saber_Data\Managed\Main.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="HMUI">
-      <HintPath>$(BeatSaberReferences)\Beat Saber_Data\Managed\HMUI.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="IPA.Loader">
-      <HintPath>$(BeatSaberReferences)\Beat Saber_Data\Managed\IPA.Loader.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="0Harmony">
-      <HintPath>$(BeatSaberReferences)\Libs\0Harmony.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Unity.TextMeshPro">
-      <HintPath>$(BeatSaberReferences)\Beat Saber_Data\Managed\Unity.TextMeshPro.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>$(BeatSaberReferences)\Beat Saber_Data\Managed\UnityEngine.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <HintPath>$(BeatSaberReferences)\Beat Saber_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <Private>True</Private>
-      <HintPath>$(BeatSaberReferences)\Beat Saber_Data\Managed\UnityEngine.UI.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="GameStatus.cs" />
-    <Compile Include="HarmonyPatches\HarmonyManager.cs" />
-    <Compile Include="HarmonyPatches\HarmonyPatchInfo.cs" />
-    <Compile Include="HarmonyPatches\LevelSelectionFlowCoordinator_StartLevel.cs" />
-    <Compile Include="OBSController.cs" />
-    <Compile Include="OBSLogger.cs" />
-    <Compile Include="Plugin.cs" />
-    <Compile Include="Logger.cs" />
-    <Compile Include="PluginConfig.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="OBSComponents\RecordingController.cs" />
-    <Compile Include="Utilities\FileRenaming.cs" />
-    <Compile Include="Wrappers\BeatmapLevelWrapper.cs" />
-    <Compile Include="Wrappers\ConversionExtensions.cs" />
-    <Compile Include="Wrappers\GameplayModifiersWrapper.cs" />
-    <Compile Include="Wrappers\IGameplayModifiers.cs" />
-    <Compile Include="Wrappers\ILevelData.cs" />
-    <Compile Include="Utilities\Utilities.cs" />
-    <Compile Include="Utilities\VersionCheck.cs" />
-    <Compile Include="Wrappers\ILevelCompletionResults.cs" />
-    <Compile Include="Wrappers\LevelCompletionResultsWrapper.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="manifest.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Directory.Build.props" />
-    <None Include="Directory.Build.targets" />
-    <None Include=".gitignore" />
-    <None Include="ILRepack.targets" />
-    <EmbeddedResource Include="UI\SettingsView.bsml" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="BeatSaberModdingTools.Tasks">
-      <Version>1.1.5</Version>
+    <PackageReference Include="BeatSaberModdingTools.Tasks" Version="2.0.0-beta7">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="ILRepack.MSBuild.Task">
-      <Version>2.0.13</Version>
-      <IncludeAssets>build</IncludeAssets>
+    <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="ILRepack.MSBuild.Task" Version="2.0.13">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="Directory.Build.props" Condition="Exists('Directory.Build.props')"/>
+    <None Include="OBSControl.csproj.user" Condition="Exists('OBSControl.csproj.user')"/>
+    <None Include=".gitignore" />
+    <None Include="ILRepack.targets" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="UI\SettingsView.bsml" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>$(BeatSaberDir)\Libs\0Harmony.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="BeatmapCore">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\BeatmapCore.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="BeatSaber.ViewSystem" Publicize="true">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\BeatSaber.ViewSystem.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="BGLib.AppFlow">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\BGLib.AppFlow.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="BGLib.UnityExtension">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\BGLib.UnityExtension.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="BS_Utils">
+      <HintPath>$(BeatSaberDir)\Plugins\BS_Utils.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="BSML">
+      <HintPath>$(BeatSaberDir)\Plugins\BSML.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="DataModels" Publicize="true">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\DataModels.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="GameplayCore">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\GameplayCore.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="HMUI" Publicize="True">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\HMUI.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="IPA.Injector">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\IPA.Injector.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="IPA.Loader">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\IPA.Loader.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Main" publicize="True">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\Main.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="mscorlib"/>
+    <Reference Include="netstandard"/>
+    <Reference Include="System"/>
+    <Reference Include="System.Core"/>
+    <Reference Include="UnityEngine">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\UnityEngine.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\obs-websocket-dotnet\obs-websocket-dotnet\obs-websocket-dotnet.csproj">
       <Project>{c8668815-f21e-49c0-8f1a-58bc698153af}</Project>
       <Name>obs-websocket-dotnet</Name>
     </ProjectReference>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  
   <Import Project="ILRepack.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
-  </PropertyGroup>
+  
 </Project>

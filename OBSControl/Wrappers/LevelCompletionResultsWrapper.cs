@@ -16,17 +16,21 @@ namespace OBSControl.Wrappers
             PlayCount = playCount;
             MaxModifiedScore = maxModifiedScore;
             if (MaxModifiedScore != 0)
-                ScorePercent = ((float)results.rawScore / MaxModifiedScore) * 100f;
+            {
+                // TODO: check this is the right value
+                ScorePercent = (float)results.multipliedScore / MaxModifiedScore * 100f;
+            }
         }
-        public int PlayCount { get; private set; }
-        public int MaxModifiedScore { get; private set; }
-        public float ScorePercent { get; private set; }
+        public int PlayCount { get; }
+        public int MaxModifiedScore { get; }
+        public float ScorePercent { get; }
 
         public IGameplayModifiers GameplayModifiers { get; }
 
         public int ModifiedScore => _results.modifiedScore;
 
-        public int RawScore => _results.rawScore;
+        // TODO: check this is the right value
+        public int RawScore => _results.multipliedScore;
 
         public ScoreRank Rank => _results.rank.ToScoreRank();
 
@@ -36,7 +40,8 @@ namespace OBSControl.Wrappers
 
         public SongEndAction LevelEndAction => _results.levelEndAction.ToSongEndAction();
 
-        public int AverageCutScore => _results.averageCutScore;
+        // TODO: check this is the right value
+        public int AverageCutScore => (int)Math.Ceiling(_results.averageCutScoreForNotesWithFullScoreScoringType);
 
         public int GoodCutsCount => _results.goodCutsCount;
 

@@ -165,7 +165,7 @@ namespace OBSControl.Utilities
                         return "Quit";
                     return levelCompletionResults.LevelEndStateType switch
                     {
-                        LevelEndState.None => "Unknown",
+                        LevelEndState.Incomplete => "Unknown",
                         LevelEndState.Cleared => "Cleared",
                         LevelEndState.Failed => "Failed",
                         _ => "Unknown",
@@ -176,7 +176,7 @@ namespace OBSControl.Utilities
                         return "Quit";
                     return levelCompletionResults.LevelEndStateType switch
                     {
-                        LevelEndState.None => "Unknown",
+                        LevelEndState.Incomplete => "Unknown",
                         LevelEndState.Cleared => string.Empty,
                         LevelEndState.Failed => "Failed",
                         _ => string.Empty,

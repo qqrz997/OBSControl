@@ -10,18 +10,15 @@ namespace OBSControl.HarmonyPatches
 {
     public static class HarmonyManager
     {
-        public static readonly string HarmonyId = "com.github.Zingabopp.OBSControl";
+        public const string HarmonyId = "com.github.Zingabopp.OBSControl";
+
         private static Harmony? _harmony;
-        internal static Harmony Harmony
-        {
-            get
-            {
-                return _harmony ??= new Harmony(HarmonyId);
-            }
-        }
         private static readonly BindingFlags allBindingFlags = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
         private static HarmonyPatchInfo? LevelDelayPatch;
-        internal readonly static HashSet<HarmonyPatchInfo> AppliedPatches = new HashSet<HarmonyPatchInfo>();
+        
+        internal static Harmony Harmony => _harmony ??= new Harmony(HarmonyId);
+        
+        internal static readonly HashSet<HarmonyPatchInfo> AppliedPatches = new HashSet<HarmonyPatchInfo>();
 
         public static bool ApplyPatch(HarmonyPatchInfo patchInfo)
         {
@@ -65,7 +62,7 @@ namespace OBSControl.HarmonyPatches
             {
                 patch.RemovePatch();
             }
-            Harmony.UnpatchAll(HarmonyId);
+            Harmony.UnpatchSelf();
         }
         public static HarmonyPatchInfo GetLevelDelayPatch()
         {
