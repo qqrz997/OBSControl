@@ -2,62 +2,61 @@
 using System.Linq;
 using UnityEngine;
 
-namespace OBSControl
-{
-    public static class GameStatus
-    {
-        private static GameplayModifiersModelSO? gpModSo;
-        public static int MaxScore;
-        public static int MaxModifiedScore;
+namespace OBSControl;
 
-        private static GameplayCoreSceneSetupData? GameplayCoreSceneSetupData =>
-            !BS_Utils.Plugin.LevelData.IsSet ? null
+public static class GameStatus
+{
+    private static GameplayModifiersModelSO? gpModSo;
+    public static int MaxScore;
+    public static int MaxModifiedScore;
+
+    private static GameplayCoreSceneSetupData? GameplayCoreSceneSetupData =>
+        !BS_Utils.Plugin.LevelData.IsSet ? null
             : BS_Utils.Plugin.LevelData.GameplayCoreSceneSetupData;
 
-        public static BeatmapLevel? BeatmapLevel => GameplayCoreSceneSetupData?.beatmapLevel;
+    public static BeatmapLevel? BeatmapLevel => GameplayCoreSceneSetupData?.beatmapLevel;
         
-        public static BeatmapKey? BeatmapKey => GameplayCoreSceneSetupData?.beatmapKey;
+    public static BeatmapKey? BeatmapKey => GameplayCoreSceneSetupData?.beatmapKey;
 
-        public static IReadonlyBeatmapData? BeatmapData => GameplayCoreSceneSetupData?.transformedBeatmapData;
+    public static IReadonlyBeatmapData? BeatmapData => GameplayCoreSceneSetupData?.transformedBeatmapData;
         
-        public static GameplayModifiersModelSO? GameplayModifiersModel
+    public static GameplayModifiersModelSO? GameplayModifiersModel
+    {
+        get
         {
-            get
+            if (gpModSo == null)
             {
-                if (gpModSo == null)
-                {
-                    Logger.log?.Debug("GameplayModifersModelSO is null, getting new one");
-                    gpModSo = Resources.FindObjectsOfTypeAll<GameplayModifiersModelSO>().FirstOrDefault();
-                }
-                if (gpModSo == null)
-                {
-                    Logger.log?.Warn("GameplayModifersModelSO is still null");
-                }
-                //else
-                //    Logger.Debug("Found GameplayModifersModelSO");
-                return gpModSo;
+                Logger.log?.Debug("GameplayModifersModelSO is null, getting new one");
+                gpModSo = Resources.FindObjectsOfTypeAll<GameplayModifiersModelSO>().FirstOrDefault();
             }
+            if (gpModSo == null)
+            {
+                Logger.log?.Warn("GameplayModifersModelSO is still null");
+            }
+            //else
+            //    Logger.Debug("Found GameplayModifersModelSO");
+            return gpModSo;
         }
+    }
 
-        public static void Setup()
+    public static void Setup()
+    {
+        try
         {
-            try
-            {
-                // TODO: Handle no-fail properly
-                if (GameplayCoreSceneSetupData == null) return;
-                MaxScore = ScoreModel.ComputeMaxMultipliedScoreForBeatmap(GameplayCoreSceneSetupData.transformedBeatmapData);
-                Logger.log?.Debug($"MaxScore: {MaxScore}");
+            // TODO: Handle no-fail properly
+            if (GameplayCoreSceneSetupData == null) return;
+            MaxScore = ScoreModel.ComputeMaxMultipliedScoreForBeatmap(GameplayCoreSceneSetupData.transformedBeatmapData);
+            Logger.log?.Debug($"MaxScore: {MaxScore}");
                 
-                if (GameplayModifiersModel == null) return;
-                var gameplayModifierList = GameplayModifiersModel.CreateModifierParamsList(GameplayCoreSceneSetupData.gameplayModifiers);
-                MaxModifiedScore = GameplayModifiersModel.GetModifiedScoreForGameplayModifiers(MaxScore, gameplayModifierList, 1);
-                Logger.log?.Debug($"MaxModifiedScore: {MaxModifiedScore}");
-            }
-            catch (Exception ex)
-            {
-                Logger.log?.Error($"Error getting max scores: {ex}");
-                Logger.log?.Debug(ex);
-            }
+            if (GameplayModifiersModel == null) return;
+            var gameplayModifierList = GameplayModifiersModel.CreateModifierParamsList(GameplayCoreSceneSetupData.gameplayModifiers);
+            MaxModifiedScore = GameplayModifiersModel.GetModifiedScoreForGameplayModifiers(MaxScore, gameplayModifierList, 1);
+            Logger.log?.Debug($"MaxModifiedScore: {MaxModifiedScore}");
+        }
+        catch (Exception ex)
+        {
+            Logger.log?.Error($"Error getting max scores: {ex}");
+            Logger.log?.Debug(ex);
         }
     }
 }

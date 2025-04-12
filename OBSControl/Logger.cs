@@ -1,9 +1,8 @@
 ﻿using IPALogger = IPA.Logging.Logger;
 
-namespace OBSControl
+namespace OBSControl;
+
+internal static class Logger
 {
-    internal static class Logger
-    {
-        public static IPALogger? log { get; set; }
-    }
+    public static IPALogger? log { get; set; }
 }
