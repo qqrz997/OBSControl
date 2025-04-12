@@ -1,22 +1,13 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+﻿using BeatSaberMarkupLanguage.Settings;
+using BeatSaberMarkupLanguage.Util;
 using IPA;
 using IPA.Config;
 using IPA.Config.Stores;
-using IPA.Utilities;
-using HarmonyLib;
-using UnityEngine.SceneManagement;
-using UnityEngine;
 using OBSControl.OBSComponents;
+using UnityEngine;
 using IPALogger = IPA.Logging.Logger;
-using BeatSaberMarkupLanguage.Settings;
-using BeatSaberMarkupLanguage.Util;
 using Object = UnityEngine.Object;
 
-#nullable enable
 namespace OBSControl
 {
     [Plugin(RuntimeOptions.DynamicInit)]

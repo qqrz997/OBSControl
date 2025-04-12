@@ -1,7 +1,4 @@
 ﻿using OBSControl.Wrappers;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace OBSControlTests.DataTypes
 {

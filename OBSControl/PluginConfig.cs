@@ -1,12 +1,11 @@
-﻿using BeatSaberMarkupLanguage.Attributes;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using BeatSaberMarkupLanguage.Attributes;
 using BeatSaberMarkupLanguage.Components.Settings;
 using IPA.Config.Stores;
 using IPA.Config.Stores.Attributes;
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using UnityEngine.SceneManagement;
-#nullable enable
+
 [assembly: InternalsVisibleTo(GeneratedStore.AssemblyVisibilityTarget)]
 namespace OBSControl
 {

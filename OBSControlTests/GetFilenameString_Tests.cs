@@ -1,12 +1,12 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using OBSControlTests.DataTypes;
 using System.Diagnostics;
-using static OBSControl.Utilities.FileRenaming;
-using OBSControl.Wrappers;
-using OBSControl.Utilities;
-using System.Text;
 using System.IO;
+using System.Text;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using OBSControl.Utilities;
+using OBSControl.Wrappers;
+using OBSControlTests.DataTypes;
+using static OBSControl.Utilities.FileRenaming;
 
 namespace OBSControlTests
 {

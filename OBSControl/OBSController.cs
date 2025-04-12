@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using UnityEngine;
+using System.Threading.Tasks;
+using IPA.Utilities.Async;
 using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Types;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using System.IO;
-using System.Globalization;
-using IPA.Utilities.Async;
+using UnityEngine;
 
-#nullable enable
 namespace OBSControl
 {
     /// <summary>

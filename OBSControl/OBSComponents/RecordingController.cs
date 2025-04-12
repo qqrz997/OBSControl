@@ -1,14 +1,14 @@
-﻿using OBSControl.Wrappers;
-using OBSWebsocketDotNet;
-using OBSWebsocketDotNet.Types;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using BS_Utils.Utilities;
+using OBSControl.Wrappers;
+using OBSWebsocketDotNet;
+using OBSWebsocketDotNet.Types;
 using UnityEngine;
-#nullable enable
+
 namespace OBSControl.OBSComponents
 {
     /// <summary>

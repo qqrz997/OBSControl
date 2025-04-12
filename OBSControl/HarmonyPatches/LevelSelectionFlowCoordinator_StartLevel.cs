@@ -1,11 +1,11 @@
-﻿using HarmonyLib;
-using IPA.Utilities;
-using OBSControl.OBSComponents;
-using System;
+﻿using System;
 using System.Collections;
 using System.Reflection;
+using HarmonyLib;
+using IPA.Utilities;
+using OBSControl.OBSComponents;
 using UnityEngine;
-#nullable enable
+
 namespace OBSControl.HarmonyPatches
 {
     [HarmonyPatch(typeof(SinglePlayerLevelSelectionFlowCoordinator), "StartLevel",

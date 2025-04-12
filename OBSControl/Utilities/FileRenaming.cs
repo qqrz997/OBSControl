@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using OBSControl.Wrappers;
-using OBSControl.Utilities;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
 using System.Collections.ObjectModel;
-using UnityEngine;
-#nullable enable
+using System.Text;
+using OBSControl.Wrappers;
+
 namespace OBSControl.Utilities
 {
     public static class FileRenaming

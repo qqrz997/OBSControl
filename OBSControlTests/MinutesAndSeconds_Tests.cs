@@ -1,9 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using OBSControlTests.DataTypes;
-using System.Diagnostics;
 using OBSControl.Utilities;
-using System.Threading.Tasks;
 
 namespace OBSControlTests
 {

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using OBSControl.Utilities;
+﻿using OBSControl.Utilities;
 using OBSControl.Wrappers;
 
 namespace OBSControlTests.DataTypes
