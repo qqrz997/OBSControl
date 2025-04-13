@@ -7,8 +7,8 @@
         <PluginId>OBSControl</PluginId>
         <PluginName>OBSControl</PluginName>
         <Authors>Zingabopp</Authors>
-        <Version>1.2.1</Version>
-        <GameVersion>1.40.3</GameVersion>
+        <Version>1.2.2</Version>
+        <GameVersion>1.40.4</GameVersion>
         <Description>Automatically record videos using OBS Websocket.</Description>
         <ProjectSource>https://github.com/qqrz997/OBSControl</ProjectSource>
         <!--<PluginIcon></PluginIcon>-->
@@ -18,9 +18,9 @@
 
     <!-- Plugin Dependencies -->
     <ItemGroup>
-        <DependsOn Include="BSIPA" Version="^4.3.5"/>
+        <DependsOn Include="BSIPA" Version="^4.3.0"/>
         <DependsOn Include="BeatSaberMarkupLanguage" Version="^1.12.0"/>
-        <DependsOn Include="BS Utils" Version="^1.7.0"/>
+        <DependsOn Include="BS Utils" Version="^1.14.0"/>
     </ItemGroup>
 
     <PropertyGroup>
