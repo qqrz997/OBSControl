@@ -37,14 +37,14 @@ public static class HarmonyManager
                 patchTypeName = prefix.method.DeclaringType?.Name;
             else if (postfix != null)
                 patchTypeName = postfix.method.DeclaringType?.Name;
-            Logger.log?.Debug($"Harmony patching {original.Name} with {patchTypeName}");
+            Plugin.Log.Debug($"Harmony patching {original.Name} with {patchTypeName}");
             harmony.Patch(original, prefix, postfix);
             return true;
         }
         catch (Exception e)
         {
-            Logger.log?.Error($"Unable to patch method {original.Name}: {e.Message}");
-            Logger.log?.Debug(e);
+            Plugin.Log.Error($"Unable to patch method {original.Name}: {e.Message}");
+            Plugin.Log.Debug(e);
             return false;
         }
     }

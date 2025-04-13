@@ -33,10 +33,10 @@ public class RecordingController : MonoBehaviour
     public async Task TryStartRecordingAsync(string fileFormat = DefaultFileFormat)
     {
         OBSWebsocket? obs = _obs;
-        Logger.log?.Debug($"TryStartRecording");
+        Plugin.Log.Debug($"TryStartRecording");
         if (obs == null)
         {
-            Logger.log?.Error($"Unable to start recording, obs instance not found.");
+            Plugin.Log.Error($"Unable to start recording, obs instance not found.");
             return;
         }
         try
@@ -46,8 +46,8 @@ public class RecordingController : MonoBehaviour
 #pragma warning disable CA1031 // Do not catch general exception types
         catch (Exception ex)
         {
-            Logger.log?.Error($"Error getting recording folder from OBS: {ex.Message}");
-            Logger.log?.Debug(ex);
+            Plugin.Log.Error($"Error getting recording folder from OBS: {ex.Message}");
+            Plugin.Log.Debug(ex);
             return;
         }
 #pragma warning restore CA1031 // Do not catch general exception types
@@ -58,7 +58,7 @@ public class RecordingController : MonoBehaviour
         {
             if (tries > 0)
             {
-                Logger.log?.Debug($"({tries}) Failed to set OBS's FilenameFormatting to {fileFormat} retrying in 50ms");
+                Plugin.Log.Debug($"({tries}) Failed to set OBS's FilenameFormatting to {fileFormat} retrying in 50ms");
                 await Task.Delay(50);
             }
             tries++;
@@ -70,14 +70,14 @@ public class RecordingController : MonoBehaviour
 #pragma warning disable CA1031 // Do not catch general exception types
             catch (Exception ex)
             {
-                Logger.log?.Error($"Error getting current filename format from OBS: {ex.Message}");
-                Logger.log?.Debug(ex);
+                Plugin.Log.Error($"Error getting current filename format from OBS: {ex.Message}");
+                Plugin.Log.Debug(ex);
             }
 #pragma warning restore CA1031 // Do not catch general exception types
         } while (currentFormat != fileFormat && tries < 10);
         CurrentFileFormat = fileFormat;
-        string? startScene = Plugin.config.StartSceneName;
-        string? gameScene = Plugin.config.GameSceneName;
+        string? startScene = Plugin.Config.StartSceneName;
+        string? gameScene = Plugin.Config.GameSceneName;
         string[] availableScenes = await GetAvailableScenes().ConfigureAwait(false);
         if (!availableScenes.Contains(startScene))
             startScene = string.Empty;
@@ -90,12 +90,12 @@ public class RecordingController : MonoBehaviour
             {
                 int transitionDuration = await obs.GetTransitionDuration().ConfigureAwait(false);
                 await obs.SetTransitionDuration(0).ConfigureAwait(false);
-                Logger.log?.Info($"Setting intro OBS scene to '{startScene}'");
+                Plugin.Log.Info($"Setting intro OBS scene to '{startScene}'");
                 await obs.SetCurrentScene(startScene).ConfigureAwait(false);
                 await obs.SetTransitionDuration(transitionDuration).ConfigureAwait(false);
                 await obs.StartRecording().ConfigureAwait(false);
-                await Task.Delay(TimeSpan.FromSeconds(Plugin.config.StartSceneDuration)).ConfigureAwait(false);
-                Logger.log?.Info($"Setting game OBS scene to '{gameScene}'");
+                await Task.Delay(TimeSpan.FromSeconds(Plugin.Config.StartSceneDuration)).ConfigureAwait(false);
+                Plugin.Log.Info($"Setting game OBS scene to '{gameScene}'");
                 await obs.SetCurrentScene(gameScene).ConfigureAwait(false);
             }
             else
@@ -109,8 +109,8 @@ public class RecordingController : MonoBehaviour
 #pragma warning disable CA1031 // Do not catch general exception types
         catch (Exception ex)
         {
-            Logger.log?.Error($"Error starting recording in OBS: {ex.Message}");
-            Logger.log?.Debug(ex);
+            Plugin.Log.Error($"Error starting recording in OBS: {ex.Message}");
+            Plugin.Log.Debug(ex);
         }
 #pragma warning restore CA1031 // Do not catch general exception types
     }
@@ -120,7 +120,7 @@ public class RecordingController : MonoBehaviour
         OBSWebsocket? obs = _obs;
         if (obs == null)
         {
-            Logger.log?.Error($"Unable to get scenes, obs instance is null.");
+            Plugin.Log.Error($"Unable to get scenes, obs instance is null.");
             return Array.Empty<string>();
         }
         try
@@ -130,8 +130,8 @@ public class RecordingController : MonoBehaviour
 #pragma warning disable CA1031 // Do not catch general exception types
         catch (Exception ex)
         {
-            Logger.log?.Error($"Error validating scenes: {ex.Message}");
-            Logger.log?.Debug(ex);
+            Plugin.Log.Error($"Error validating scenes: {ex.Message}");
+            Plugin.Log.Debug(ex);
             return Array.Empty<string>();
         }
 #pragma warning restore CA1031 // Do not catch general exception types
@@ -149,14 +149,14 @@ public class RecordingController : MonoBehaviour
         try
         {
             string[] availableScenes = await GetAvailableScenes().ConfigureAwait(false);
-            Logger.log?.Debug($"Available scenes: {string.Join(", ", availableScenes)}");
+            Plugin.Log.Debug($"Available scenes: {string.Join(", ", availableScenes)}");
             return scenes.All(s => availableScenes.Contains(s));
         }
 #pragma warning disable CA1031 // Do not catch general exception types
         catch (Exception ex)
         {
-            Logger.log?.Error($"Error validating scenes: {ex.Message}");
-            Logger.log?.Debug(ex);
+            Plugin.Log.Error($"Error validating scenes: {ex.Message}");
+            Plugin.Log.Debug(ex);
             return false;
         }
 #pragma warning restore CA1031 // Do not catch general exception types
@@ -169,11 +169,11 @@ public class RecordingController : MonoBehaviour
         OBSWebsocket? obs = _obs;
         if (obs == null)
         {
-            Logger.log?.Error($"Unable to stop recording, obs instance is null.");
+            Plugin.Log.Error($"Unable to stop recording, obs instance is null.");
             return;
         }
-        string endScene = Plugin.config.EndSceneName ?? string.Empty;
-        string gameScene = Plugin.config.GameSceneName ?? string.Empty;
+        string endScene = Plugin.Config.EndSceneName ?? string.Empty;
+        string gameScene = Plugin.Config.GameSceneName ?? string.Empty;
         string[] availableScenes = await GetAvailableScenes().ConfigureAwait(false);
         if (!availableScenes.Contains(endScene))
             endScene = string.Empty;
@@ -184,7 +184,7 @@ public class RecordingController : MonoBehaviour
         {
             WaitingToStop = true;
             RenameString = renameTo;
-            float delay = Plugin.config.RecordingStopDelay;
+            float delay = Plugin.Config.RecordingStopDelay;
             if (!stopImmediate)
             {
                 if (delay > 0)
@@ -192,31 +192,31 @@ public class RecordingController : MonoBehaviour
 
                 if (validOutro)
                 {
-                    Logger.log?.Info($"Setting outro OBS scene to '{endScene}'");
+                    Plugin.Log.Info($"Setting outro OBS scene to '{endScene}'");
                     await obs.SetCurrentScene(endScene);
-                    await Task.Delay(TimeSpan.FromSeconds(Plugin.config.EndSceneDuration));
+                    await Task.Delay(TimeSpan.FromSeconds(Plugin.Config.EndSceneDuration));
                 }
             }
             await obs.StopRecording().ConfigureAwait(false);
             if (!stopImmediate && validOutro)
             {
                 await Task.Delay(100).ConfigureAwait(false); // To ensure recording has fully stopped.
-                Logger.log?.Info($"Setting game OBS scene to '{gameScene}'");
+                Plugin.Log.Info($"Setting game OBS scene to '{gameScene}'");
                 await obs.SetCurrentScene(gameScene).ConfigureAwait(false);
             }
             recordingCurrentLevel = false;
         }
         catch (ErrorResponseException ex)
         {
-            Logger.log?.Error($"Error trying to stop recording: {ex.Message}");
+            Plugin.Log.Error($"Error trying to stop recording: {ex.Message}");
             if (ex.Message != "recording not active")
-                Logger.log?.Debug(ex);
+                Plugin.Log.Debug(ex);
         }
 #pragma warning disable CA1031 // Do not catch general exception types
         catch (Exception ex)
         {
-            Logger.log?.Error($"Unexpected exception trying to stop recording: {ex.Message}");
-            Logger.log?.Debug(ex);
+            Plugin.Log.Error($"Unexpected exception trying to stop recording: {ex.Message}");
+            Plugin.Log.Debug(ex);
         }
 #pragma warning restore CA1031 // Do not catch general exception types
         finally
@@ -231,12 +231,12 @@ public class RecordingController : MonoBehaviour
     {
         if (newName == null)
         {
-            Logger.log?.Warn($"Unable to rename last recording, provided new name is null.");
+            Plugin.Log.Warn($"Unable to rename last recording, provided new name is null.");
             return;
         }
         if (newName.Length == 0)
         {
-            Logger.log?.Info($"Skipping file rename, no RecordingFileFormat provided.");
+            Plugin.Log.Info($"Skipping file rename, no RecordingFileFormat provided.");
             return;
         }
         string? recordingFolder = RecordingFolder;
@@ -244,48 +244,48 @@ public class RecordingController : MonoBehaviour
         CurrentFileFormat = null;
         if (string.IsNullOrEmpty(recordingFolder))
         {
-            Logger.log?.Warn($"Unable to determine current recording folder, unable to rename.");
+            Plugin.Log.Warn($"Unable to determine current recording folder, unable to rename.");
             return;
         }
         if (string.IsNullOrEmpty(fileFormat))
         {
-            Logger.log?.Warn($"Last recorded filename not stored, unable to rename.");
+            Plugin.Log.Warn($"Last recorded filename not stored, unable to rename.");
             return;
         }
 
         DirectoryInfo directory = new DirectoryInfo(recordingFolder);
         if (!directory.Exists)
         {
-            Logger.log?.Warn($"Recording directory doesn't exist, unable to rename.");
+            Plugin.Log.Warn($"Recording directory doesn't exist, unable to rename.");
             return;
         }
         FileInfo targetFile = directory.GetFiles(fileFormat + "*").OrderByDescending(f => f.CreationTimeUtc).FirstOrDefault();
         if (targetFile == null)
         {
-            Logger.log?.Warn($"Couldn't find recorded file, unable to rename.");
+            Plugin.Log.Warn($"Couldn't find recorded file, unable to rename.");
             return;
         }
         string fileName = targetFile.Name.Substring(0, targetFile.Name.LastIndexOf('.'));
         string fileExtension = targetFile.Extension;
-        Logger.log?.Info($"Attempting to rename {fileFormat}{fileExtension} to {newName} with an extension of {fileExtension}");
+        Plugin.Log.Info($"Attempting to rename {fileFormat}{fileExtension} to {newName} with an extension of {fileExtension}");
         string newFile = newName + fileExtension;
         int index = 2;
         while (File.Exists(Path.Combine(directory.FullName, newFile)))
         {
-            Logger.log?.Debug($"File exists: {Path.Combine(directory.FullName, newFile)}");
+            Plugin.Log.Debug($"File exists: {Path.Combine(directory.FullName, newFile)}");
             newFile = newName + $"({index})" + fileExtension;
             index++;
         }
         try
         {
-            Logger.log?.Debug($"Attempting to rename to '{newFile}'");
+            Plugin.Log.Debug($"Attempting to rename to '{newFile}'");
             targetFile.MoveTo(Path.Combine(directory.FullName, newFile));
         }
 #pragma warning disable CA1031 // Do not catch general exception types
         catch (Exception ex)
         {
-            Logger.log?.Error($"Unable to rename {targetFile.Name} to {newFile}: {ex.Message}");
-            Logger.log?.Debug(ex);
+            Plugin.Log.Error($"Unable to rename {targetFile.Name} to {newFile}: {ex.Message}");
+            Plugin.Log.Debug(ex);
         }
 #pragma warning restore CA1031 // Do not catch general exception types
     }
@@ -295,7 +295,7 @@ public class RecordingController : MonoBehaviour
     public void StartRecordingLevel()
     {
         string fileFormat = ToDateTimeFileFormat(DateTime.Now);
-        Logger.log?.Debug($"Starting recording, file format: {fileFormat}");
+        Plugin.Log.Debug($"Starting recording, file format: {fileFormat}");
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         TryStartRecordingAsync(fileFormat);
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
@@ -350,15 +350,15 @@ public class RecordingController : MonoBehaviour
             var resultsWrapper = new LevelCompletionResultsWrapper(levelCompletionResults, stats?.playCount ?? 0, GameStatus.MaxModifiedScore);
             if (GameStatus.BeatmapLevel != null && GameStatus.BeatmapKey != null)
             {
-                newFileName = Utilities.FileRenaming.GetFilenameString(Plugin.config.RecordingFileFormat,
+                newFileName = Utilities.FileRenaming.GetFilenameString(Plugin.Config.RecordingFileFormat,
                     new LevelWrapper(GameStatus.BeatmapLevel, GameStatus.BeatmapKey.Value), resultsWrapper, 
-                    Plugin.config.InvalidCharacterSubstitute, Plugin.config.ReplaceSpacesWith);
+                    Plugin.Config.InvalidCharacterSubstitute, Plugin.Config.ReplaceSpacesWith);
             }
         }
         catch (Exception ex)
         {
-            Logger.log?.Error($"Error generating new file name: {ex}");
-            Logger.log?.Debug(ex);
+            Plugin.Log.Error($"Error generating new file name: {ex}");
+            Plugin.Log.Debug(ex);
         }
         StopRecordingTask = TryStopRecordingAsync(newFileName, false);
     }
@@ -367,7 +367,7 @@ public class RecordingController : MonoBehaviour
 
     private void Obs_RecordingStateChanged(object sender, OutputState type)
     {
-        Logger.log?.Info($"Recording State Changed: {type}");
+        Plugin.Log.Info($"Recording State Changed: {type}");
         switch (type)
         {
             case OutputState.Starting:

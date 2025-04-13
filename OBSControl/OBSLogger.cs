@@ -9,14 +9,14 @@ public class OBSLogger : IOBSLogger
 
     public void Log(string message, OBSLogLevel level)
     {
-        Logger.log?.Log(level.ToIPALogLevel(), "[OBSWebSocket] " + message);
+        Plugin.Log.Log(level.ToIPALogLevel(), "[OBSWebSocket] " + message);
     }
 
     public void Log(Exception ex, OBSLogLevel level)
     {
         var ipaLevel = level.ToIPALogLevel();
-        Logger.log?.Log(ipaLevel, "Exception in OBSWebSocket:");
-        Logger.log?.Log(ipaLevel, ex);
+        Plugin.Log.Log(ipaLevel, "Exception in OBSWebSocket:");
+        Plugin.Log.Log(ipaLevel, ex);
     }
 }
 

@@ -26,12 +26,12 @@ public static class GameStatus
         {
             if (gpModSo == null)
             {
-                Logger.log?.Debug("GameplayModifersModelSO is null, getting new one");
+                Plugin.Log.Debug("GameplayModifersModelSO is null, getting new one");
                 gpModSo = Resources.FindObjectsOfTypeAll<GameplayModifiersModelSO>().FirstOrDefault();
             }
             if (gpModSo == null)
             {
-                Logger.log?.Warn("GameplayModifersModelSO is still null");
+                Plugin.Log.Warn("GameplayModifersModelSO is still null");
             }
             //else
             //    Logger.Debug("Found GameplayModifersModelSO");
@@ -44,19 +44,23 @@ public static class GameStatus
         try
         {
             // TODO: Handle no-fail properly
-            if (GameplayCoreSceneSetupData == null) return;
-            MaxScore = ScoreModel.ComputeMaxMultipliedScoreForBeatmap(GameplayCoreSceneSetupData.transformedBeatmapData);
-            Logger.log?.Debug($"MaxScore: {MaxScore}");
-                
-            if (GameplayModifiersModel == null) return;
-            var gameplayModifierList = GameplayModifiersModel.CreateModifierParamsList(GameplayCoreSceneSetupData.gameplayModifiers);
-            MaxModifiedScore = GameplayModifiersModel.GetModifiedScoreForGameplayModifiers(MaxScore, gameplayModifierList, 1);
-            Logger.log?.Debug($"MaxModifiedScore: {MaxModifiedScore}");
+            if (BeatmapData != null)
+            {
+                MaxScore = ScoreModel.ComputeMaxMultipliedScoreForBeatmap(BeatmapData);
+                Plugin.Log.Debug($"MaxScore: {MaxScore}");
+            }
+
+            if (GameplayModifiersModel != null && GameplayCoreSceneSetupData != null)
+            {
+                var gameplayModifierList = GameplayModifiersModel.CreateModifierParamsList(GameplayCoreSceneSetupData.gameplayModifiers);
+                MaxModifiedScore = GameplayModifiersModel.GetModifiedScoreForGameplayModifiers(MaxScore, gameplayModifierList, 1);
+                Plugin.Log.Debug($"MaxModifiedScore: {MaxModifiedScore}");
+            }
         }
         catch (Exception ex)
         {
-            Logger.log?.Error($"Error getting max scores: {ex}");
-            Logger.log?.Debug(ex);
+            Plugin.Log.Error($"Error getting max scores: {ex}");
+            Plugin.Log.Debug(ex);
         }
     }
 }

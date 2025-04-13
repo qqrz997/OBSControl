@@ -24,7 +24,7 @@ public class OBSController
         {
             if (_obs == value)
                 return;
-            Logger.log?.Info($"obs.set");
+            Plugin.Log.Info($"obs.set");
             if (_obs != null)
             {
 
@@ -45,14 +45,14 @@ public class OBSController
 //                    _playerSettings = GameStatus.gameSetupData?.playerSpecificSettings;
 //                    if (_playerSettings != null)
 //                    {
-//                        Logger.log?.Debug("Found PlayerSettings");
+//                        Logger.Log.Debug("Found PlayerSettings");
 //                    }
 //                    else
-//                        Logger.log?.Warn($"Unable to find PlayerSettings");
+//                        Logger.Log.Warn($"Unable to find PlayerSettings");
 //                }
 //#if DEBUG
 //                else
-//                    Logger.log?.Debug("PlayerSettings already exists, don't need to find it");
+//                    Logger.Log.Debug("PlayerSettings already exists, don't need to find it");
 //#endif
 //                return _playerSettings;
 //            }
@@ -68,14 +68,14 @@ public class OBSController
                 _playerData = Resources.FindObjectsOfTypeAll<PlayerDataModel>().FirstOrDefault();
                 if (_playerData != null)
                 {
-                    Logger.log?.Debug("Found PlayerData");
+                    Plugin.Log.Debug("Found PlayerData");
                 }
                 else
-                    Logger.log?.Warn($"Unable to find PlayerData");
+                    Plugin.Log.Warn($"Unable to find PlayerData");
             }
 #if DEBUG
                 else
-                    Logger.log?.Debug("PlayerData already exists, don't need to find it");
+                    Plugin.Log.Debug("PlayerData already exists, don't need to find it");
 #endif
             return _playerData;
         }
@@ -87,14 +87,14 @@ public class OBSController
     public static OBSController? instance { get; private set; }
     public bool IsConnected => Obs?.IsConnected ?? false;
 
-    private PluginConfig Config => Plugin.config;
+    private PluginConfig Config => Plugin.Config;
     public event EventHandler? DestroyingObs;
 
     #region Setup/Teardown
 
     private void CreateObsInstance()
     {
-        Logger.log?.Debug("CreateObsInstance()");
+        Plugin.Log.Debug("CreateObsInstance()");
         var newObs = new OBSWebsocket();
         //newObs. = new TimeSpan(0, 0, 30);
         newObs.Connected += OnConnect;
@@ -103,7 +103,7 @@ public class OBSController
         newObs.StreamStatus += Obs_StreamStatus;
         newObs.SceneListChanged += OnObsSceneListChanged;
         Obs = newObs;
-        Logger.log?.Debug("CreateObsInstance finished");
+        Plugin.Log.Debug("CreateObsInstance finished");
     }
 
     private void OnDisconnect(object sender, EventArgs e)
@@ -139,7 +139,7 @@ public class OBSController
     {
         if (target == null)
             return;
-        Logger.log?.Debug("Disconnecting from obs instance.");
+        Plugin.Log.Debug("Disconnecting from obs instance.");
         DestroyingObs?.Invoke(this, null);
         if (target.IsConnected)
         {
@@ -160,7 +160,7 @@ public class OBSController
         string? serverAddress = Config.ServerAddress;
         if(serverAddress == null || serverAddress.Length == 0)
         {
-            Logger.log?.Error($"ServerAddress cannot be null or empty.");
+            Plugin.Log.Error($"ServerAddress cannot be null or empty.");
             return false;
         }
         if (Obs != null && !Obs.IsConnected)
@@ -171,7 +171,7 @@ public class OBSController
                 message = $"Finished attempting to connect to {Config.ServerAddress}";
                 if (message != lastTryConnectMessage)
                 {
-                    Logger.log?.Info(message);
+                    Plugin.Log.Info(message);
                     lastTryConnectMessage = message;
                 }
             }
@@ -180,7 +180,7 @@ public class OBSController
                 message = $"Authentication failed connecting to server {Config.ServerAddress}.";
                 if (message != lastTryConnectMessage)
                 {
-                    Logger.log?.Info(message);
+                    Plugin.Log.Info(message);
                     lastTryConnectMessage = message;
                 }
                 return false;
@@ -190,10 +190,10 @@ public class OBSController
                 message = $"Failed to connect to server {Config.ServerAddress}: {ex.Message}.";
                 if (message != lastTryConnectMessage)
                 {
-                    Logger.log?.Info(message);
+                    Plugin.Log.Info(message);
                     lastTryConnectMessage = message;
                 }
-                Logger.log?.Debug(ex);
+                Plugin.Log.Debug(ex);
                 return false;
             }
             catch (Exception ex)
@@ -201,17 +201,17 @@ public class OBSController
                 message = $"Failed to connect to server {Config.ServerAddress}: {ex.Message}.";
                 if (message != lastTryConnectMessage)
                 {
-                    Logger.log?.Info(message);
-                    Logger.log?.Debug(ex);
+                    Plugin.Log.Info(message);
+                    Plugin.Log.Debug(ex);
                     lastTryConnectMessage = message;
                 }
                 return false;
             }
             if (Obs.IsConnected)
-                Logger.log?.Info($"Connected to OBS @ {Config.ServerAddress}");
+                Plugin.Log.Info($"Connected to OBS @ {Config.ServerAddress}");
         }
         else
-            Logger.log?.Info("TryConnect: OBS is already connected.");
+            Plugin.Log.Info("TryConnect: OBS is already connected.");
         return Obs?.IsConnected ?? false;
     }
 
@@ -220,29 +220,29 @@ public class OBSController
         OBSWebsocket? obs = Obs;
         if(obs == null)
         {
-            Logger.log?.Error($"Obs instance is null in RepeatTryConnect()");
+            Plugin.Log.Error($"Obs instance is null in RepeatTryConnect()");
             return;
         }
         try
         {
-            if (string.IsNullOrEmpty(Plugin.config.ServerAddress))
+            if (string.IsNullOrEmpty(Plugin.Config.ServerAddress))
             {
-                Logger.log?.Error("The ServerAddress in the config is null or empty. Unable to connect to OBS.");
+                Plugin.Log.Error("The ServerAddress in the config is null or empty. Unable to connect to OBS.");
                 return;
             }
-            Logger.log?.Info($"Attempting to connect to {Config.ServerAddress}");
+            Plugin.Log.Info($"Attempting to connect to {Config.ServerAddress}");
             while (!(await TryConnect().ConfigureAwait(false)))
             {
                 await Task.Delay(5000).ConfigureAwait(false);
             }
 
-            Logger.log?.Info($"OBS {(await obs.GetVersion().ConfigureAwait(false)).OBSStudioVersion} is connected.");
-            Logger.log?.Info($"OnConnectTriggered: {OnConnectTriggered}");
+            Plugin.Log.Info($"OBS {(await obs.GetVersion().ConfigureAwait(false)).OBSStudioVersion} is connected.");
+            Plugin.Log.Info($"OnConnectTriggered: {OnConnectTriggered}");
         }
         catch (Exception ex)
         {
-            Logger.log?.Error($"Error in RepeatTryConnect: {ex.Message}");
-            Logger.log?.Debug(ex);
+            Plugin.Log.Error($"Error in RepeatTryConnect: {ex.Message}");
+            Plugin.Log.Debug(ex);
         }
     }
 
@@ -254,19 +254,19 @@ public class OBSController
         OBSWebsocket? obs = _obs;
         if (obs == null) return;
         OnConnectTriggered = true;
-        Logger.log?.Info($"OnConnect: Connected to OBS.");
+        Plugin.Log.Info($"OnConnect: Connected to OBS.");
         try
         {
             string[] availableScenes = (await obs.GetSceneList().ConfigureAwait(false)).Scenes.Select(s => s.Name).ToArray();
             await UnityMainThreadTaskScheduler.Factory.StartNew(() =>
             {
-                Plugin.config.UpdateSceneOptions(availableScenes);
+                Plugin.Config.UpdateSceneOptions(availableScenes);
             });
         }
         catch (Exception ex)
         {
-            Logger.log?.Error($"Error getting scene list: {ex.Message}");
-            Logger.log?.Debug(ex);
+            Plugin.Log.Error($"Error getting scene list: {ex.Message}");
+            Plugin.Log.Debug(ex);
         }
     }
 
@@ -277,33 +277,33 @@ public class OBSController
         try
         {
             string[] availableScenes = (await obs.GetSceneList().ConfigureAwait(false)).Scenes.Select(s => s.Name).ToArray();
-            Logger.log?.Info($"OBS scene list changed: {string.Join(", ", availableScenes)}");
+            Plugin.Log.Info($"OBS scene list changed: {string.Join(", ", availableScenes)}");
             await UnityMainThreadTaskScheduler.Factory.StartNew(() =>
             {
-                Plugin.config.UpdateSceneOptions(availableScenes);
+                Plugin.Config.UpdateSceneOptions(availableScenes);
             });
         }
         catch (Exception ex)
         {
-            Logger.log?.Error($"Error getting scene list: {ex.Message}");
-            Logger.log?.Debug(ex);
+            Plugin.Log.Error($"Error getting scene list: {ex.Message}");
+            Plugin.Log.Debug(ex);
         }
     }
 
     private void Obs_StreamingStateChanged(object sender, OutputStateChangedEventArgs e)
     {
-        Logger.log?.Info($"Streaming State Changed: {e.OutputState.ToString()}");
+        Plugin.Log.Info($"Streaming State Changed: {e.OutputState.ToString()}");
     }
 
 
     private void Obs_StreamStatus(object sender, StreamStatusEventArgs status)
     {
-        Logger.log?.Info($"Stream Time: {status.TotalStreamTime.ToString()} sec");
-        Logger.log?.Info($"Bitrate: {(status.KbitsPerSec / 1024f).ToString("N2")} Mbps");
-        Logger.log?.Info($"FPS: {status.FPS.ToString()} FPS");
-        Logger.log?.Info($"Strain: {(status.Strain * 100).ToString()} %");
-        Logger.log?.Info($"DroppedFrames: {status.DroppedFrames.ToString()} frames");
-        Logger.log?.Info($"TotalFrames: {status.TotalFrames.ToString()} frames");
+        Plugin.Log.Info($"Stream Time: {status.TotalStreamTime.ToString()} sec");
+        Plugin.Log.Info($"Bitrate: {(status.KbitsPerSec / 1024f).ToString("N2")} Mbps");
+        Plugin.Log.Info($"FPS: {status.FPS.ToString()} FPS");
+        Plugin.Log.Info($"Strain: {(status.Strain * 100).ToString()} %");
+        Plugin.Log.Info($"DroppedFrames: {status.DroppedFrames.ToString()} frames");
+        Plugin.Log.Info($"TotalFrames: {status.TotalFrames.ToString()} frames");
     }
 
     #endregion
@@ -314,7 +314,7 @@ public class OBSController
     /// </summary>
     private void Awake()
     {
-        Logger.log?.Debug("OBSController Awake()");
+        Plugin.Log.Debug("OBSController Awake()");
         if (instance != null)
         {
             GameObject.DestroyImmediate(this);
@@ -330,7 +330,7 @@ public class OBSController
     /// </summary>
     private void Start()
     {
-        Logger.log?.Debug("OBSController Start()");
+        Plugin.Log.Debug("OBSController Start()");
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
         RepeatTryConnect();
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed

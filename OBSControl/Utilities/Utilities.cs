@@ -25,7 +25,7 @@ public static class Utilities
         {
             if (invalidSubstitutes.Length > 0)
             {
-                //Logger.log?.Warn($"{nameof(Plugin.config.InvalidCharacterSubstitute)} has invalid character(s): {string.Join(", ", invalidSubstitutes)}");
+                //Logger.Log.Warn($"{nameof(Plugin.config.InvalidCharacterSubstitute)} has invalid character(s): {string.Join(", ", invalidSubstitutes)}");
             }
             substitute = string.Empty;
         }

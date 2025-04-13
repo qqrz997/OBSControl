@@ -34,7 +34,7 @@ public class HarmonyPatchInfo
                 patchTypeName = PrefixMethod.method.DeclaringType?.Name;
             else if (PostfixMethod != null)
                 patchTypeName = PostfixMethod.method.DeclaringType?.Name;
-            Logger.log?.Debug($"Harmony patching '{OriginalMethod.Name}' with '{patchTypeName}'");
+            Plugin.Log.Debug($"Harmony patching '{OriginalMethod.Name}' with '{patchTypeName}'");
             harmony.Patch(OriginalMethod, PrefixMethod, PostfixMethod);
             IsApplied = true;
             HarmonyManager.AppliedPatches.Add(this);
@@ -42,8 +42,8 @@ public class HarmonyPatchInfo
         }
         catch (Exception e)
         {
-            Logger.log?.Error($"Unable to patch method {OriginalMethod.Name}: {e.Message}");
-            Logger.log?.Debug(e);
+            Plugin.Log.Error($"Unable to patch method {OriginalMethod.Name}: {e.Message}");
+            Plugin.Log.Debug(e);
             return false;
         }
     }
@@ -57,7 +57,7 @@ public class HarmonyPatchInfo
             patchTypeName = PrefixMethod.method.DeclaringType?.Name;
         else if (PostfixMethod != null)
             patchTypeName = PostfixMethod.method.DeclaringType?.Name;
-        Logger.log?.Debug($"Removing Harmony patch '{patchTypeName}' from '{OriginalMethod.Name}'");
+        Plugin.Log.Debug($"Removing Harmony patch '{patchTypeName}' from '{OriginalMethod.Name}'");
         if (PrefixMethod != null)
             harmony.Unpatch(OriginalMethod, PrefixMethod.method);
         if (PostfixMethod != null)

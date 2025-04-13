@@ -33,15 +33,15 @@ internal class LevelSelectionNavigationController_StartLevel
     {
         if(RecordingController.instance == null)
         {
-            Logger.log?.Warn($"RecordingController is null, unable to start recording.");
+            Plugin.Log.Warn($"RecordingController is null, unable to start recording.");
             return true;
         }
         if (!(OBSController.instance?.IsConnected ?? false))
         {
-            Logger.log?.Warn($"Not connected to OBS, skipping StartLevel override.");
+            Plugin.Log.Warn($"Not connected to OBS, skipping StartLevel override.");
             return true;
         }
-        if (Plugin.config.LevelStartDelay == 0)
+        if (Plugin.Config.LevelStartDelay == 0)
         {
             RecordingController.instance.StartRecordingLevel();
             SharedCoroutineStarter.Instance.StartCoroutine(RecordingController.instance.GameStatusSetup());
@@ -56,7 +56,7 @@ internal class LevelSelectionNavigationController_StartLevel
         }
         DelayedStartActive = true;
         WaitingToStart = true;
-        Logger.log?.Debug("LevelSelectionNavigationController_StartLevel");
+        Plugin.Log.Debug("LevelSelectionNavigationController_StartLevel");
         LevelCollectionNavigationController navigationController = AccessNavigationController(ref ___levelSelectionNavigationController);
         StandardLevelDetailViewController detailViewController = AccessDetailViewController(ref navigationController);
         StandardLevelDetailView levelView = AccessDetailView(ref detailViewController);
@@ -73,10 +73,10 @@ internal class LevelSelectionNavigationController_StartLevel
         if (playButton != null)
             playButton.interactable = false;
         else
-            Logger.log?.Warn($"playButton is null for DelayedLevelStart, unable to disable while waiting.");
-        Logger.log?.Debug($"Delaying level start by {Plugin.config.LevelStartDelay} seconds...");
+            Plugin.Log.Warn($"playButton is null for DelayedLevelStart, unable to disable while waiting.");
+        Plugin.Log.Debug($"Delaying level start by {Plugin.Config.LevelStartDelay} seconds...");
         RecordingController.instance?.StartRecordingLevel();
-        yield return new WaitForSeconds(Plugin.config.LevelStartDelay); ;
+        yield return new WaitForSeconds(Plugin.Config.LevelStartDelay); ;
         WaitingToStart = false;
         //playButton.interactable = true;
         StartLevel(coordinator, beforeSceneSwitchCallback, practice);
