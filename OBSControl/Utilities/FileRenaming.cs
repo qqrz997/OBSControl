@@ -1,209 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Text;
 using OBSControl.Models;
 
 namespace OBSControl.Utilities;
 
-public static class FileRenaming
+internal static class FileRenaming
 {
-    public const string DefaultDateTimeFormat = "yyyyMMddHHmm";
-    public static string GetDefaultFilename() => DateTime.Now.ToString("yyyyMMddHHmmss");
-    public static readonly ReadOnlyDictionary<char, LevelDataType> LevelDataSubstitutions = new ReadOnlyDictionary<char, LevelDataType>(new Dictionary<char, LevelDataType>()
-    {
-        {'B', LevelDataType.BeatsPerMinute },
-        {'D', LevelDataType.DifficultyName },
-        {'d', LevelDataType.DifficultyShortName },
-        {'A', LevelDataType.LevelAuthorName },
-        {'a', LevelDataType.SongAuthorName },
-        {'I', LevelDataType.LevelId },
-        {'J', LevelDataType.NoteJumpSpeed },
-        {'L', LevelDataType.SongDurationLabeled },
-        {'l', LevelDataType.SongDurationNoLabels },
-        {'N', LevelDataType.SongName },
-        {'n', LevelDataType.SongSubName },
-        {'@', LevelDataType.Date },
-        //------CompletionResults----------
-        {'1', LevelDataType.FirstPlay },
-        {'b', LevelDataType.BadCutsCount },
-        {'T', LevelDataType.EndSongTimeLabeled },
-        {'t', LevelDataType.EndSongTimeNoLabels },
-        {'F', LevelDataType.FullCombo },
-        {'M', LevelDataType.Modifiers },
-        {'m', LevelDataType.MissedCount },
-        {'G', LevelDataType.GoodCutsCount },
-        {'E', LevelDataType.LevelEndType },
-        {'e', LevelDataType.LevelIncompleteType },
-        {'C', LevelDataType.MaxCombo },
-        {'S', LevelDataType.RawScore },
-        {'s', LevelDataType.ModifiedScore },
-        {'R', LevelDataType.Rank },
-        {'%', LevelDataType.ScorePercent }
-    });
-
-    public enum LevelDataType
-    {
-        None,
-        BeatsPerMinute,
-        DifficultyShortName,
-        DifficultyName,
-        LevelAuthorName,
-        LevelId,
-        NoteJumpSpeed,
-        SongAuthorName,
-        SongDurationNoLabels,
-        SongDurationLabeled,
-        SongName,
-        SongSubName,
-        Date,
-        FirstPlay,
-        BadCutsCount,
-        EndSongTimeNoLabels,
-        EndSongTimeLabeled,
-        FullCombo,
-        Modifiers,
-        GoodCutsCount,
-        LevelEndType,
-        LevelIncompleteType,
-        MaxCombo,
-        MissedCount,
-        ModifiedScore,
-        Rank,
-        RawScore,
-        ScorePercent
-    }
-
-    public static string GetDifficultyName(Difficulty difficulty, bool shortName = false)
-    {
-        if (!shortName)
-            return difficulty.ToString();
-        return difficulty switch
-        {
-            Difficulty.Easy => "E",
-            Difficulty.Normal => "N",
-            Difficulty.Hard => "H",
-            Difficulty.Expert => "E",
-            Difficulty.ExpertPlus => "E+",
-            _ => "NA",
-        };
-    }
-
-    public static string GetLevelDataString(LevelDataType levelDataType, ILevelData levelData, 
-        ILevelCompletionResults levelCompletionResults, string? data = null)
-    {
-        string? retVal = null;
-        switch (levelDataType)
-        {
-            case LevelDataType.None:
-                return string.Empty;
-            case LevelDataType.BeatsPerMinute:
-                return levelData.BeatsPerMinute.ToString("N2").TrimEnd('0').TrimEnd('.').TrimEnd(',');
-            case LevelDataType.DifficultyShortName:
-                return GetDifficultyName(levelData.Difficulty, true);
-            case LevelDataType.DifficultyName:
-                return GetDifficultyName(levelData.Difficulty, false);
-            case LevelDataType.LevelAuthorName:
-                retVal = levelData.LevelAuthorName;
-                if (int.TryParse(data, out int mapperLimit) && retVal.Length > mapperLimit)
-                    retVal = retVal.Substring(0, mapperLimit);
-                return retVal;
-            case LevelDataType.LevelId:
-                return levelData.LevelID;
-            case LevelDataType.NoteJumpSpeed:
-                return levelData.NoteJumpMovementSpeed.ToString("N2").TrimEnd('0').TrimEnd('.').TrimEnd(',');
-            case LevelDataType.SongAuthorName:
-                retVal = levelData.SongAuthorName;
-                if (int.TryParse(data, out int authorLimit) && retVal.Length > authorLimit)
-                    retVal = retVal.Substring(0, authorLimit);
-                return retVal;
-            case LevelDataType.SongDurationNoLabels:
-                levelData.SongDuration.MinutesAndSeconds(out int durMin, out int durSec);
-                return durMin + "." + durSec.ToString("00");
-            case LevelDataType.SongDurationLabeled:
-                levelData.SongDuration.MinutesAndSeconds(out int durMinL, out int durSecL);
-                return durMinL + "m." + durSecL.ToString("00") + "s";
-            case LevelDataType.SongName:
-                retVal = levelData.SongName;
-                if (int.TryParse(data, out int songNameLimit) && retVal.Length > songNameLimit)
-                    retVal = retVal.Substring(0, songNameLimit);
-                return retVal;
-            case LevelDataType.SongSubName:
-                retVal = levelData.SongSubName;
-                if (int.TryParse(data, out int subNameLimit) && retVal.Length > subNameLimit)
-                    retVal = retVal.Substring(0, subNameLimit);
-                return retVal;
-            case LevelDataType.Date:
-                return DateTime.Now.ToString(data ?? DefaultDateTimeFormat);
-            case LevelDataType.FirstPlay:
-                if (levelCompletionResults.PlayCount == 0)
-                    return "1st";
-                else
-                    return string.Empty;
-            case LevelDataType.BadCutsCount:
-                return levelCompletionResults.BadCutsCount.ToString();
-            case LevelDataType.EndSongTimeNoLabels:
-                levelCompletionResults.EndSongTime.MinutesAndSeconds(out int endMin, out int endSec);
-                return endMin + "." + endSec.ToString("00");
-            case LevelDataType.EndSongTimeLabeled:
-                levelCompletionResults.EndSongTime.MinutesAndSeconds(out int endMinL, out int endSecL);
-                return endMinL + "m." + endSecL.ToString("00") + "s";
-            case LevelDataType.FullCombo:
-                return levelCompletionResults.FullCombo ? "FC" : string.Empty;
-            case LevelDataType.Modifiers:
-                return levelCompletionResults.GameplayModifiers.ToModifierString();
-            case LevelDataType.GoodCutsCount:
-                return levelCompletionResults.GoodCutsCount.ToString();
-            case LevelDataType.LevelEndType:
-                if (levelCompletionResults.LevelEndAction == SongEndAction.Quit
-                    || levelCompletionResults.LevelEndAction == SongEndAction.Restart)
-                    return "Quit";
-                return levelCompletionResults.LevelEndStateType switch
-                {
-                    LevelEndState.Incomplete => "Unknown",
-                    LevelEndState.Cleared => "Cleared",
-                    LevelEndState.Failed => "Failed",
-                    _ => "Unknown",
-                };
-            case LevelDataType.LevelIncompleteType:
-                if (levelCompletionResults.LevelEndAction == SongEndAction.Quit
-                    || levelCompletionResults.LevelEndAction == SongEndAction.Restart)
-                    return "Quit";
-                return levelCompletionResults.LevelEndStateType switch
-                {
-                    LevelEndState.Incomplete => "Unknown",
-                    LevelEndState.Cleared => string.Empty,
-                    LevelEndState.Failed => "Failed",
-                    _ => string.Empty,
-                };
-            case LevelDataType.MaxCombo:
-                return levelCompletionResults.MaxCombo.ToString();
-            case LevelDataType.MissedCount:
-                return levelCompletionResults.MissedCount.ToString();
-            case LevelDataType.ModifiedScore:
-                return levelCompletionResults.ModifiedScore.ToString();
-            case LevelDataType.Rank:
-                return levelCompletionResults.Rank.ToString();
-            case LevelDataType.RawScore:
-                return levelCompletionResults.RawScore.ToString();
-            case LevelDataType.ScorePercent:
-                string scoreStr = levelCompletionResults.ScorePercent.ToString("F3");
-                return scoreStr.Substring(0, scoreStr.Length - 1); // Game rounds down
-            default:
-                return "NA";
-        }
-    }
-
     /// <summary>
     /// Creates a file name string from a base string substituting characters prefixed by '?' with data from the game.
     /// </summary>
-    /// <param name="baseString"></param>
-    /// <param name="levelData"></param>
-    /// <param name="levelCompletionResults"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="difficultyBeatmap"/> or <paramref name="levelCompletionResults"/> is null.</exception>
-    public static string GetFilenameString(string? baseString, ILevelData levelData, ILevelCompletionResults levelCompletionResults, 
-        string? invalidSubstitute = "", string? spaceReplacement = null)
+    public static string GetFilenameString(
+        string? baseString,
+        ILevelData levelData,
+        ILevelCompletionResults levelCompletionResults,
+        string? invalidSubstitute = "",
+        string? spaceReplacement = null)
     {
         if (levelData == null)
             throw new ArgumentNullException(nameof(levelData), "difficultyBeatmap cannot be null for GetFilenameString.");
@@ -296,4 +108,119 @@ public static class FileRenaming
         Utilities.GetSafeFilename(ref stringBuilder, invalidSubstitute ?? string.Empty, spaceReplacement);
         return stringBuilder.ToString();
     }
+    
+    private const string DefaultDateTimeFormat = "yyyyMMddHHmm";
+
+    private static readonly Dictionary<char, LevelDataType> LevelDataSubstitutions = new()
+    {
+        {'B', LevelDataType.BeatsPerMinute },
+        {'D', LevelDataType.DifficultyName },
+        {'d', LevelDataType.DifficultyShortName },
+        {'A', LevelDataType.LevelAuthorName },
+        {'a', LevelDataType.SongAuthorName },
+        {'I', LevelDataType.LevelId },
+        {'J', LevelDataType.NoteJumpSpeed },
+        {'L', LevelDataType.SongDurationLabeled },
+        {'l', LevelDataType.SongDurationNoLabels },
+        {'N', LevelDataType.SongName },
+        {'n', LevelDataType.SongSubName },
+        {'@', LevelDataType.Date },
+        //------CompletionResults----------
+        {'1', LevelDataType.FirstPlay },
+        {'b', LevelDataType.BadCutsCount },
+        {'T', LevelDataType.EndSongTimeLabeled },
+        {'t', LevelDataType.EndSongTimeNoLabels },
+        {'F', LevelDataType.FullCombo },
+        {'M', LevelDataType.Modifiers },
+        {'m', LevelDataType.MissedCount },
+        {'G', LevelDataType.GoodCutsCount },
+        {'E', LevelDataType.LevelEndType },
+        {'e', LevelDataType.LevelIncompleteType },
+        {'C', LevelDataType.MaxCombo },
+        {'S', LevelDataType.RawScore },
+        {'s', LevelDataType.ModifiedScore },
+        {'R', LevelDataType.Rank },
+        {'%', LevelDataType.ScorePercent }
+    };
+
+    private static string GetLevelDataString(
+        LevelDataType levelDataType,
+        ILevelData levelData,
+        ILevelCompletionResults results,
+        string? config = null) => levelDataType switch
+    {
+        LevelDataType.None => string.Empty,
+        LevelDataType.BeatsPerMinute => $"{levelData.BeatsPerMinute:N2}".TrimEnd('0', '.', ','),
+        LevelDataType.DifficultyShortName => FormatShortNameDifficulty(levelData.Difficulty),
+        LevelDataType.DifficultyName => levelData.Difficulty.ToString(),
+        LevelDataType.LevelAuthorName => int.TryParse(config, out var levelMax) && levelData.LevelAuthorName.Length > levelMax ? levelData.LevelAuthorName.Substring(0, levelMax) : levelData.LevelAuthorName,
+        LevelDataType.LevelId => levelData.LevelID,
+        LevelDataType.NoteJumpSpeed => $"{levelData.NoteJumpMovementSpeed:N2}".TrimEnd('0', '.', ','),
+        LevelDataType.SongAuthorName => int.TryParse(config, out var songMax) && levelData.SongAuthorName.Length > songMax ? levelData.SongAuthorName.Substring(0, songMax) : levelData.SongAuthorName,
+        LevelDataType.SongDurationNoLabels => SongDurationNoLabels(TimeSpan.FromSeconds(levelData.SongDuration)),
+        LevelDataType.SongDurationLabeled => SongDurationWithLabels(TimeSpan.FromSeconds(levelData.SongDuration)),
+        LevelDataType.SongName => int.TryParse(config, out var songNameMax) && levelData.SongName.Length > songNameMax ? levelData.SongName.Substring(0, songNameMax) : levelData.SongName,
+        LevelDataType.SongSubName => int.TryParse(config, out var subNameMax) && levelData.SongSubName.Length > subNameMax ? levelData.SongSubName.Substring(0, subNameMax) : levelData.SongSubName,
+        LevelDataType.Date => DateTime.Now.ToString(config ?? DefaultDateTimeFormat),
+        LevelDataType.FirstPlay => results.PlayCount == 0 ? "1st" : string.Empty,
+        LevelDataType.BadCutsCount => results.BadCutsCount.ToString(),
+        LevelDataType.EndSongTimeNoLabels => SongDurationNoLabels(TimeSpan.FromSeconds(results.EndSongTime)),
+        LevelDataType.EndSongTimeLabeled => SongDurationWithLabels(TimeSpan.FromSeconds(results.EndSongTime)),
+        LevelDataType.FullCombo => results.FullCombo ? "FC" : string.Empty,
+        LevelDataType.Modifiers => results.GameplayModifiers.ToModifierString(),
+        LevelDataType.GoodCutsCount => results.GoodCutsCount.ToString(),
+        LevelDataType.LevelEndType => FormatLevelEndState(results),
+        LevelDataType.LevelIncompleteType => FormatLevelIncompleteState(results),
+        LevelDataType.MaxCombo => results.MaxCombo.ToString(),
+        LevelDataType.MissedCount => results.MissedCount.ToString(),
+        LevelDataType.ModifiedScore => results.ModifiedScore.ToString(),
+        LevelDataType.Rank => results.Rank.ToString(),
+        LevelDataType.RawScore => results.RawScore.ToString(),
+        LevelDataType.ScorePercent => FormatScorePercent(results.ScorePercent),
+        _ => "NA"
+    };
+
+    private static string FormatShortNameDifficulty(Difficulty difficulty) => difficulty switch 
+    {
+        Difficulty.Easy => "E",
+        Difficulty.Normal => "N",
+        Difficulty.Hard => "H",
+        Difficulty.Expert => "E",
+        Difficulty.ExpertPlus => "E+",
+        _ => "NA",
+    };
+
+    private static string SongDurationNoLabels(TimeSpan time) => $"{time.Minutes}.{time.Seconds:00}";
+    private static string SongDurationWithLabels(TimeSpan time) => $"{time.Minutes}m.{time.Seconds:00}s";
+
+    private static string FormatScorePercent(float scorePercent)
+    {
+        Plugin.Log.Info($"Formatting score percent: {scorePercent}%");
+        var str = $"{scorePercent:F3}";
+        return str.Substring(0, str.Length - 1);
+    }
+
+    private static string FormatLevelEndState(ILevelCompletionResults results) => results.LevelEndAction switch
+    {
+        SongEndAction.Quit or SongEndAction.Restart => "Quit",
+        _ => results.LevelEndStateType switch
+        {
+            LevelEndState.Incomplete => "Unknown",
+            LevelEndState.Cleared => "Cleared",
+            LevelEndState.Failed => "Failed",
+            _ => "Unknown",
+        }
+    };
+
+    private static string FormatLevelIncompleteState(ILevelCompletionResults results) => results.LevelEndAction switch
+    {
+        SongEndAction.Quit or SongEndAction.Restart => "Quit",
+        _ => results.LevelEndStateType switch
+        {
+            LevelEndState.Incomplete => "Unknown",
+            LevelEndState.Cleared => string.Empty,
+            LevelEndState.Failed => "Failed",
+            _ => string.Empty,
+        }
+    };
 }

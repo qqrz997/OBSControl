@@ -19,18 +19,15 @@ internal class RecordingManager : IInitializable, IDisposable
     private readonly PluginConfig pluginConfig;
     private readonly ObsManager obsManager;
     private readonly PlayerDataModel playerDataModel;
-    private readonly GameplayModifiersModelSO gameplayModifiersModel;
 
     public RecordingManager(
         PluginConfig pluginConfig,
         ObsManager obsManager,
-        PlayerDataModel playerDataModel,
-        GameplayModifiersModelSO gameplayModifiersModel)
+        PlayerDataModel playerDataModel)
     {
         this.pluginConfig = pluginConfig;
         this.obsManager = obsManager;
         this.playerDataModel = playerDataModel;
-        this.gameplayModifiersModel = gameplayModifiersModel;
     }
     
     private bool recordingCurrentLevel;
@@ -244,26 +241,12 @@ internal class RecordingManager : IInitializable, IDisposable
         Task.Run(() => TryStartRecordingAsync(fileFormat));
     }
 
-    public void OnStandardLevelFinished(
-        StandardLevelScenesTransitionSetupDataSO setupData,
-        LevelCompletionResults levelCompletionResults)
+    public void OnStandardLevelFinished(ILevelData levelData, ILevelCompletionResults levelCompletionResults)
     {
         try
         {
-            var playCount = playerDataModel.playerData.GetOrCreatePlayerLevelStatsData(
-                setupData.beatmapLevel.levelID,
-                setupData.beatmapKey.difficulty,
-                setupData.beatmapKey.beatmapCharacteristic).playCount;
-
-            var maxMultipliedScore = ScoreModel.ComputeMaxMultipliedScoreForBeatmap(setupData.transformedBeatmapData);
-            var modifierParams = gameplayModifiersModel.CreateModifierParamsList(setupData.gameplayModifiers);
-            var maxModifiedScore = gameplayModifiersModel.GetModifiedScoreForGameplayModifiers(maxMultipliedScore, modifierParams, 1f);
-            
-            var levelWrapper = new LevelWrapper(setupData.beatmapLevel, setupData.beatmapKey);
-            var resultsWrapper = new LevelCompletionResultsWrapper(levelCompletionResults, playCount, maxModifiedScore);
-            
             var newFileName = FileRenaming.GetFilenameString(
-                pluginConfig.RecordingFileFormat, levelWrapper, resultsWrapper, 
+                pluginConfig.RecordingFileFormat, levelData, levelCompletionResults, 
                 pluginConfig.InvalidCharacterSubstitute, pluginConfig.ReplaceSpacesWith);
 
             StopIfRecording(newFileName);

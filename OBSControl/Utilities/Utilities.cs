@@ -7,6 +7,8 @@ namespace OBSControl.Utilities;
 
 public static class Utilities
 {
+    private static readonly string[] InvalidFileNameChars = Path.GetInvalidFileNameChars().Select(c => c.ToString()).ToArray();
+    
     public static string GetSafeFilename(string fileName, string? substitute = null, string? spaceReplacement = null)
     {
         _ = fileName ?? throw new ArgumentNullException(nameof(fileName), "fileName cannot be null for GetSafeFilename");
@@ -17,29 +19,22 @@ public static class Utilities
 
     public static void GetSafeFilename(ref StringBuilder filenameBuilder, string? substitute = null, string? spaceReplacement = null)
     {
-        _ = filenameBuilder ?? throw new ArgumentNullException(nameof(filenameBuilder), "filenameBuilder cannot be null for GetSafeFilename");
-        char[] invalidChars = Path.GetInvalidFileNameChars();
-
-        char[] invalidSubstitutes = substitute == null ? Array.Empty<char>() : invalidChars.Where(c => substitute.Contains(c)).ToArray();
+        var invalidSubstitutes = substitute == null ? [] 
+            : InvalidFileNameChars.Where(c => substitute.Contains(c)).ToArray();
+        
         if (substitute == null || invalidSubstitutes.Length > 0)
         {
-            if (invalidSubstitutes.Length > 0)
-            {
-                //Logger.Log.Warn($"{nameof(Plugin.config.InvalidCharacterSubstitute)} has invalid character(s): {string.Join(", ", invalidSubstitutes)}");
-            }
             substitute = string.Empty;
         }
+        
         if (spaceReplacement != null && spaceReplacement != " ")
+        {
             filenameBuilder.Replace(" ", spaceReplacement);
-        foreach (char character in invalidChars)
+        }
+
+        foreach (var character in InvalidFileNameChars)
         {
             filenameBuilder.Replace(character.ToString(), substitute);
         }
-    }
-
-    public static void MinutesAndSeconds(this float totalSeconds, out int minutes, out int seconds)
-    {
-        minutes = (int)totalSeconds / 60;
-        seconds = (int)(totalSeconds % 60f);
     }
 }
