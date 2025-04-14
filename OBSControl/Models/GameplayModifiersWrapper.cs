@@ -1,4 +1,6 @@
-﻿namespace OBSControl.Wrappers;
+﻿using OBSControl.Utilities;
+
+namespace OBSControl.Models;
 
 public class GameplayModifiersWrapper : IGameplayModifiers
 {

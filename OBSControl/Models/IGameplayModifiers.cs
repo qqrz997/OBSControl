@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace OBSControl.Wrappers;
+namespace OBSControl.Models;
 
 public interface IGameplayModifiers
 {

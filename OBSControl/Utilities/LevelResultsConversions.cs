@@ -1,6 +1,8 @@
-﻿namespace OBSControl.Wrappers;
+﻿using OBSControl.Models;
 
-public static class ConversionExtensions
+namespace OBSControl.Utilities;
+
+public static class LevelResultsConversions
 {
     public static Difficulty ToBeatmapDifficulty(this BeatmapDifficulty difficulty)
     {
@@ -83,6 +85,4 @@ public static class ConversionExtensions
             _ => SongSpeed.Normal,
         };
     }
-
-
 }

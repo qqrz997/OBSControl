@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using OBSControl.Utilities;
 
-namespace OBSControl.Wrappers;
+namespace OBSControl.Models;
 
 public class LevelWrapper : ILevelData
 {

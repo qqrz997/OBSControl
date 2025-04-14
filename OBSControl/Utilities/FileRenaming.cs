@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Text;
-using OBSControl.Wrappers;
+using OBSControl.Models;
 
 namespace OBSControl.Utilities;
 

@@ -1,4 +1,4 @@
-﻿namespace OBSControl.Wrappers;
+﻿namespace OBSControl.Models;
 
 public interface ILevelCompletionResults
 {

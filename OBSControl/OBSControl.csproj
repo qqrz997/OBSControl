@@ -49,7 +49,7 @@
       <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\BeatmapCore.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="BeatSaber.ViewSystem" Publicize="true">
+    <Reference Include="BeatSaber.ViewSystem">
       <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\BeatSaber.ViewSystem.dll</HintPath>
       <Private>true</Private>
     </Reference>
@@ -59,10 +59,6 @@
     </Reference>
     <Reference Include="BGLib.UnityExtension">
       <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\BGLib.UnityExtension.dll</HintPath>
-      <Private>true</Private>
-    </Reference>
-    <Reference Include="BS_Utils">
-      <HintPath>$(BeatSaberDir)\Plugins\BS_Utils.dll</HintPath>
       <Private>true</Private>
     </Reference>
     <Reference Include="BSML">
@@ -82,7 +78,7 @@
       <HintPath>$(BeatSaberDir)\Libs\Hive.Versioning.dll</HintPath>
       <Private>true</Private>
     </Reference>
-    <Reference Include="HMUI" Publicize="True">
+    <Reference Include="HMUI">
       <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\HMUI.dll</HintPath>
       <Private>true</Private>
     </Reference>
@@ -94,12 +90,17 @@
       <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\IPA.Loader.dll</HintPath>
       <Private>true</Private>
     </Reference>
-    <Reference Include="Main" publicize="True">
+    <Reference Include="Main">
       <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\Main.dll</HintPath>
       <Private>true</Private>
+      <Publicize>true</Publicize>
     </Reference>
     <Reference Include="mscorlib"/>
     <Reference Include="netstandard"/>
+    <Reference Include="SiraUtil">
+      <HintPath>$(BeatSaberDir)\Plugins\SiraUtil.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
     <Reference Include="System"/>
     <Reference Include="System.Core"/>
     <Reference Include="UnityEngine">
@@ -117,6 +118,14 @@
     <Reference Include="UnityEngine.UI">
       <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\UnityEngine.UI.dll</HintPath>
       <Private>true</Private>
+    </Reference>
+    <Reference Include="Zenject">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\Zenject.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Zenject-usage">
+      <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\Zenject-usage.dll</HintPath>
+      <Private>false</Private>
     </Reference>
   </ItemGroup>
 

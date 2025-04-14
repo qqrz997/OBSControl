@@ -1,6 +1,4 @@
-﻿using OBSControl.Wrappers;
-
-namespace OBSControl.Utilities;
+﻿namespace OBSControl.Models;
 
 public interface ILevelData
 {
