@@ -35,11 +35,11 @@ internal class StandardLevelEndHook : IAffinity
         var modifierParams = gameplayModifiersModel.CreateModifierParamsList(gameplayModifiers);
         var maxModifiedScore = gameplayModifiersModel.GetModifiedScoreForGameplayModifiers(maxMultipliedScore, modifierParams, 1f);
             
-        var levelWrapper = new LevelWrapper(
+        var levelWrapper = new ExtendedLevelData(
             standardLevelScenesTransitionSetupData.beatmapLevel,
             standardLevelScenesTransitionSetupData.beatmapKey);
         
-        var resultsWrapper = new LevelCompletionResultsWrapper(levelCompletionResults, playCount, maxModifiedScore);
+        var resultsWrapper = new ExtendedCompletionResults(levelCompletionResults, playCount, maxModifiedScore);
         
         recordingManager.OnStandardLevelFinished(levelWrapper, resultsWrapper);
     }

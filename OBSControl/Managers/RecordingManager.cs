@@ -241,7 +241,7 @@ internal class RecordingManager : IInitializable, IDisposable
         Task.Run(() => TryStartRecordingAsync(fileFormat));
     }
 
-    public void OnStandardLevelFinished(ILevelData levelData, ILevelCompletionResults levelCompletionResults)
+    public void OnStandardLevelFinished(ExtendedLevelData levelData, ExtendedCompletionResults levelCompletionResults)
     {
         try
         {
@@ -258,7 +258,7 @@ internal class RecordingManager : IInitializable, IDisposable
         }
     }
 
-    private void ObsRecordingStateChanged(object sender, OutputState type)
+    private void ObsRecordingStateChanged(OutputState type)
     {
         Plugin.Log.Debug($"Recording State Changed: {type}");
         switch (type)

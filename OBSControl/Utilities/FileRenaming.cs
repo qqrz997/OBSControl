@@ -12,8 +12,8 @@ internal static class FileRenaming
     /// </summary>
     public static string GetFilenameString(
         string? baseString,
-        ILevelData levelData,
-        ILevelCompletionResults levelCompletionResults,
+        ExtendedLevelData levelData,
+        ExtendedCompletionResults levelCompletionResults,
         string? invalidSubstitute = "",
         string? spaceReplacement = null)
     {
@@ -145,8 +145,8 @@ internal static class FileRenaming
 
     private static string GetLevelDataString(
         LevelDataType levelDataType,
-        ILevelData levelData,
-        ILevelCompletionResults results,
+        ExtendedLevelData levelData,
+        ExtendedCompletionResults results,
         string? config = null) => levelDataType switch
     {
         LevelDataType.None => string.Empty,
@@ -180,13 +180,13 @@ internal static class FileRenaming
         _ => "NA"
     };
 
-    private static string FormatShortNameDifficulty(Difficulty difficulty) => difficulty switch 
+    private static string FormatShortNameDifficulty(this BeatmapDifficulty difficulty) => difficulty switch 
     {
-        Difficulty.Easy => "E",
-        Difficulty.Normal => "N",
-        Difficulty.Hard => "H",
-        Difficulty.Expert => "E",
-        Difficulty.ExpertPlus => "E+",
+        BeatmapDifficulty.Easy => "E",
+        BeatmapDifficulty.Normal => "N",
+        BeatmapDifficulty.Hard => "H",
+        BeatmapDifficulty.Expert => "E",
+        BeatmapDifficulty.ExpertPlus => "E+",
         _ => "NA",
     };
 
@@ -200,27 +200,28 @@ internal static class FileRenaming
         return str.Substring(0, str.Length - 1);
     }
 
-    private static string FormatLevelEndState(ILevelCompletionResults results) => results.LevelEndAction switch
+    private static string FormatLevelEndState(this ExtendedCompletionResults results) => results.LevelEndAction switch
     {
-        SongEndAction.Quit or SongEndAction.Restart => "Quit",
+        LevelCompletionResults.LevelEndAction.Quit or LevelCompletionResults.LevelEndAction.Restart => "Quit",
         _ => results.LevelEndStateType switch
         {
-            LevelEndState.Incomplete => "Unknown",
-            LevelEndState.Cleared => "Cleared",
-            LevelEndState.Failed => "Failed",
+            LevelCompletionResults.LevelEndStateType.Incomplete => "Unknown",
+            LevelCompletionResults.LevelEndStateType.Cleared => "Cleared",
+            LevelCompletionResults.LevelEndStateType.Failed => "Failed",
             _ => "Unknown",
         }
     };
 
-    private static string FormatLevelIncompleteState(ILevelCompletionResults results) => results.LevelEndAction switch
-    {
-        SongEndAction.Quit or SongEndAction.Restart => "Quit",
-        _ => results.LevelEndStateType switch
+    private static string FormatLevelIncompleteState(this ExtendedCompletionResults results) => 
+        results.LevelEndAction switch
         {
-            LevelEndState.Incomplete => "Unknown",
-            LevelEndState.Cleared => string.Empty,
-            LevelEndState.Failed => "Failed",
-            _ => string.Empty,
-        }
-    };
+            LevelCompletionResults.LevelEndAction.Quit or LevelCompletionResults.LevelEndAction.Restart => "Quit",
+            _ => results.LevelEndStateType switch
+            {
+                LevelCompletionResults.LevelEndStateType.Incomplete => "Unknown",
+                LevelCompletionResults.LevelEndStateType.Cleared => string.Empty,
+                LevelCompletionResults.LevelEndStateType.Failed => "Failed",
+                _ => string.Empty,
+            }
+        };
 }

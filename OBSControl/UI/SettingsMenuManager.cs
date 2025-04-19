@@ -4,23 +4,23 @@ using Zenject;
 
 namespace OBSControl.UI;
 
-internal class MenuManager : IInitializable, IDisposable
+internal class SettingsMenuManager : IInitializable, IDisposable
 {
     private readonly BSMLSettings bsmlSettings;
-    private readonly PluginConfig pluginConfig;
+    private readonly PluginSettingsView pluginSettingsView;
 
     private const string MenuName = "OBSControl";
     private const string ResourcePath = "OBSControl.UI.SettingsView.bsml";
     
-    public MenuManager(BSMLSettings bsmlSettings, PluginConfig pluginConfig)
+    public SettingsMenuManager(BSMLSettings bsmlSettings, PluginSettingsView pluginSettingsView)
     {
         this.bsmlSettings = bsmlSettings;
-        this.pluginConfig = pluginConfig;
+        this.pluginSettingsView = pluginSettingsView;
     }
     
     public void Initialize()
     {
-        bsmlSettings.AddSettingsMenu(MenuName, ResourcePath, pluginConfig);
+        bsmlSettings.AddSettingsMenu(MenuName, ResourcePath, pluginSettingsView);
     }
 
     public void Dispose()

@@ -34,7 +34,7 @@ public static class Utilities
 
         foreach (var character in InvalidFileNameChars)
         {
-            filenameBuilder.Replace(character.ToString(), substitute);
+            filenameBuilder.Replace(character, substitute);
         }
     }
 }

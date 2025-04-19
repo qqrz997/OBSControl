@@ -4,7 +4,6 @@ using IPA.Config;
 using IPA.Config.Stores;
 using IPA.Loader;
 using OBSControl.Installers;
-using OBSControl.Managers;
 using OBSControl.ObsWebsocket;
 using SiraUtil.Zenject;
 using Logger = IPA.Logging.Logger;

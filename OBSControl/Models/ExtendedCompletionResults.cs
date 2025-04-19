@@ -1,22 +1,21 @@
 ﻿using System;
-using OBSControl.Utilities;
 
 namespace OBSControl.Models;
 
-public class LevelCompletionResultsWrapper : ILevelCompletionResults
+internal class ExtendedCompletionResults
 {
-    public LevelCompletionResultsWrapper(LevelCompletionResults results, int playCount, int maxModifiedScore)
+    public ExtendedCompletionResults(LevelCompletionResults results, int playCount, int maxModifiedScore)
     {
         PlayCount = playCount;
         MaxModifiedScore = maxModifiedScore;
         ScorePercent = maxModifiedScore == 0 ? 0 : (float)results.modifiedScore / maxModifiedScore * 100f;
-        GameplayModifiers = new GameplayModifiersWrapper(results.gameplayModifiers);
+        GameplayModifiers = results.gameplayModifiers;
         ModifiedScore = results.modifiedScore;
         RawScore = results.multipliedScore;
-        Rank = results.rank.ToScoreRank();
+        Rank = results.rank;
         FullCombo = results.fullCombo;
-        LevelEndStateType = results.levelEndStateType.ToLevelEndState();
-        LevelEndAction = results.levelEndAction.ToSongEndAction();
+        LevelEndStateType = results.levelEndStateType;
+        LevelEndAction = results.levelEndAction;
         AverageCutScore = (int)Math.Round(results.averageCutScoreForNotesWithFullScoreScoringType);
         GoodCutsCount = results.goodCutsCount;
         BadCutsCount = results.badCutsCount;
@@ -28,13 +27,13 @@ public class LevelCompletionResultsWrapper : ILevelCompletionResults
     public int PlayCount { get; }
     public int MaxModifiedScore { get; }
     public float ScorePercent { get; }
-    public IGameplayModifiers GameplayModifiers { get; }
+    public GameplayModifiers GameplayModifiers { get; }
     public int ModifiedScore { get; }
     public int RawScore { get; }
-    public ScoreRank Rank { get; }
+    public RankModel.Rank Rank { get; }
     public bool FullCombo { get; }
-    public LevelEndState LevelEndStateType { get; }
-    public SongEndAction LevelEndAction { get; }
+    public LevelCompletionResults.LevelEndStateType LevelEndStateType { get; }
+    public LevelCompletionResults.LevelEndAction LevelEndAction { get; }
     public int AverageCutScore { get; }
     public int GoodCutsCount { get; }
     public int BadCutsCount { get; }

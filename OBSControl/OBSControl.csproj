@@ -38,6 +38,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="UI\SettingsView.bsml" />
+    <EmbeddedResource Include="UI\ControlScreen.bsml" />
   </ItemGroup>
   
   <ItemGroup>
@@ -81,6 +82,7 @@
     <Reference Include="HMUI">
       <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\HMUI.dll</HintPath>
       <Private>true</Private>
+      <Publicize>true</Publicize>
     </Reference>
     <Reference Include="IPA.Injector">
       <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\IPA.Injector.dll</HintPath>
@@ -121,11 +123,11 @@
     </Reference>
     <Reference Include="Zenject">
       <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\Zenject.dll</HintPath>
-      <Private>false</Private>
+      <Private>true</Private>
     </Reference>
     <Reference Include="Zenject-usage">
       <HintPath>$(BeatSaberDir)\Beat Saber_Data\Managed\Zenject-usage.dll</HintPath>
-      <Private>false</Private>
+      <Private>true</Private>
     </Reference>
   </ItemGroup>
 
