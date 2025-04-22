@@ -50,7 +50,7 @@
                         </horizontal>
                         <button text='~ConnectButtonText' on-click='ConnectButtonClicked'
                                 interactable='~ConnectButtonInteractable' align='Midline' 
-                                preferred-height='7' min-width='32' preferred-width='32'/>
+                                preferred-height='8' min-width='32' preferred-width='32'/>
                     </horizontal>
                     
                     <horizontal pad-left='3' pad-right='-3'
@@ -102,10 +102,9 @@
                         <text text='Streaming' font-size='4'  align='MidlineLeft' size-delta-x='32'/>
                         <text data='IsStreaming' data-formatter='BoolFormatter' data-format='Streaming|Stopped' color='~StreamingTextColor'
                               align='MidlineLeft' size-delta-x='25'/>
-                        <button text='Start' active='~IsNotStreaming' interactable='~StreamButtonInteractable'
-                                on-click='StartStreaming' preferred-height='8' min-width='30' preferred-width='30'/>
-                        <button text='Stop' active='~IsStreaming' interactable='~StreamButtonInteractable'
-                                on-click='StopStreaming' preferred-height='8' min-width='30' preferred-width='30'/>
+                        <button text='~StreamButtonText' on-click='StreamButtonClicked'
+                                interactable='~StreamButtonInteractable' align='Midline'
+                                preferred-height='8' min-width='32' preferred-width='32'/>
                     </horizontal>
                     
                     <horizontal pad-left='3' pad-right='-3' pref-height='7'

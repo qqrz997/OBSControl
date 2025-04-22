@@ -4,9 +4,11 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using BeatSaberMarkupLanguage.Attributes;
 using OBSControl.Managers;
 using OBSControl.UI.Formatters;
 using OBSWebsocketDotNet;
+using OBSWebsocketDotNet.Types;
 using Zenject;
 
 namespace OBSControl.UI;
@@ -25,46 +27,80 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
     public void Initialize()
     {
         obsManager.ConnectionStateChanged += ObsConnectionStateChanged;
-        obsManager.Obs.SceneChanged += ObsSceneChanged;
-        obsManager.HeartBeat += ObsHeartBeat;
+        obsManager.HeartBeatChanged += ObsHeartBeatChanged;
+        obsManager.SceneChanged += ObsSceneChanged;
+        obsManager.RecordingStateChanged += ObsRecordingStateChanged;
+        obsManager.StreamingStateChanged += ObsStreamingStateChanged;
     }
 
     public void Dispose()
     {
         obsManager.ConnectionStateChanged -= ObsConnectionStateChanged;
-        obsManager.Obs.SceneChanged -= ObsSceneChanged;
-        obsManager.HeartBeat -= ObsHeartBeat;
+        obsManager.HeartBeatChanged -= ObsHeartBeatChanged;
+        obsManager.SceneChanged -= ObsSceneChanged;
+        obsManager.RecordingStateChanged -= ObsRecordingStateChanged;
+        obsManager.StreamingStateChanged -= ObsStreamingStateChanged;
     }
 
-    private void ObsConnectionStateChanged(bool obj)
+    [UIAction("#post-parse")]
+    public void PostParse()
     {
-        PropertyChanged(this, new(nameof(IsConnected)));
-        PropertyChanged(this, new(nameof(ConnectedTextColor)));
+        ObsConnectionStateChanged(obsManager.IsConnected);
+        if (obsManager.HeartBeat != null) ObsHeartBeatChanged(obsManager.HeartBeat);
+        ObsSceneChanged(obsManager.CurrentScene);
+        ObsRecordingStateChanged(obsManager.RecordingState);
+        ObsStreamingStateChanged(obsManager.StreamingState);
     }
-
-    private void ObsSceneChanged(object sender, SceneChangeEventArgs e)
-    {
-        CurrentScene = e.NewSceneName;
-    }
-
-    private void ObsHeartBeat(HeartBeatEventArgs e)
-    {
-        RenderMissedFrames = e.Stats.RenderMissedFrames;
-    }
-
-    private bool connectButtonInteractable = true;
-    private string connectButtonText = "Connect";
-    private string currentScene = "SET ME";
-    private int renderMissedFrames;
 
     public BoolFormatter BoolFormatter { get; }
 
-    public bool IsConnected => obsManager.Obs.IsConnected;
-    public bool IsRecording { get; set; } = false;
-    public bool IsNotRecording => !IsRecording;
-    public bool IsStreaming { get; set; } = false;
-    public bool IsNotStreaming => !IsStreaming;
+    private bool isConnected;
+    public bool IsConnected
+    {
+        get => isConnected;
+        set
+        {
+            isConnected = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(ConnectedTextColor));
+            ConnectButtonText = value ? "Disconnect" : "Connect";
+        }
+    }
+    
+    private bool isRecording;
+    public bool IsRecording
+    {
+        get => isRecording;
+        set
+        {
+            isRecording = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(RecordingTextColor));
+            OnPropertyChanged(nameof(IsNotRecording));
+        }
+    }
+    public bool IsNotRecording => !isRecording;
+    
+    private bool isStreaming;
+    public bool IsStreaming
+    {
+        get => isStreaming;
+        set
+        {
+            isStreaming = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(StreamingTextColor));
+            OnPropertyChanged(nameof(IsNotStreaming));
+        }
+    }
+    public bool IsNotStreaming => !isStreaming;
+    
+    public string ConnectedTextColor => isConnected ? "green" : "red";
+    public string RecordingTextColor => isRecording ? "green" : "red";
+    public string StreamingTextColor => isStreaming ? "green" : "red";
 
+
+    private bool connectButtonInteractable = true;
     public bool ConnectButtonInteractable
     {
         get => connectButtonInteractable;
@@ -75,6 +111,7 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
         }
     }
 
+    private string connectButtonText = "Connect";
     public string ConnectButtonText
     {
         get => connectButtonText;
@@ -84,13 +121,8 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
             OnPropertyChanged();
         }
     }
-    
-    public string RecordingTextColor => IsRecording ? "green" : "red";
-    
-    public string StreamingTextColor => IsStreaming ? "green" : "red";
 
-    public string ConnectedTextColor => IsConnected ? "green" : "red";
-
+    private string currentScene = string.Empty;
     public string CurrentScene
     {
         get => currentScene;
@@ -101,6 +133,7 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
         }
     }
 
+    private int renderMissedFrames;
     public int RenderMissedFrames
     {
         get => renderMissedFrames;
@@ -116,32 +149,43 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
         ConnectButtonInteractable = false;
         try
         {
-            if (IsConnected)
-            {
-                obsManager.Obs.Disconnect();
-            }
-            else
-            {
-                ConnectButtonText = "Connecting";
-                await obsManager.TryConnect();
-            }
+            if (IsConnected) obsManager.Obs.Disconnect();
+            else await obsManager.TryConnect();
         }
         catch (Exception ex)
         {
-            Plugin.Log.Warn($"Error {(IsConnected ? "disconnecting from " : "connecting to ")} OBS: {ex.Message}");
+            Plugin.Log.Warn($"Error {(IsConnected ? "disconnecting from" : "connecting to")} OBS: {ex.Message}");
             Plugin.Log.Debug(ex);
             ConnectButtonText = "Error";
         }
-
-        ConnectButtonText = IsConnected ? "Disconnect" : "Connect";
-        await Task.Delay(2500);
+        
+        await Task.Delay(1000);
         ConnectButtonInteractable = true;
     }
 
-    public event PropertyChangedEventHandler PropertyChanged;
+    private void ObsConnectionStateChanged(bool connected) => IsConnected = connected;
+    
+    private void ObsSceneChanged(string sceneName) => CurrentScene = sceneName;
+    
+    private void ObsStreamingStateChanged(OutputState outputState) => IsStreaming = outputState switch
+    {
+        OutputState.Started => true,
+        OutputState.Stopped => false,
+        _ => IsStreaming
+    };
 
+    private void ObsRecordingStateChanged(OutputState outputState) => IsRecording = outputState switch
+    {
+        OutputState.Started => true,
+        OutputState.Stopped => false,
+        _ => IsRecording
+    };
+
+    private void ObsHeartBeatChanged(HeartBeatEventArgs e) => RenderMissedFrames = e.Stats.RenderMissedFrames;
+    
+    public event PropertyChangedEventHandler? PropertyChanged;
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
-        PropertyChanged(this, new(propertyName));
+        PropertyChanged?.Invoke(this, new(propertyName));
     }
 }

@@ -17,31 +17,39 @@ internal class ObsManager : IInitializable, IDisposable
     public ObsManager(PluginConfig pluginConfig)
     {
         this.pluginConfig = pluginConfig;
-
+        
         Obs = new();
     }
 
-    private bool isConnected = false;
-
     public event Action<bool>? ConnectionStateChanged; 
+    public event Action<string>? SceneChanged; 
     public event Action<IEnumerable<string>>? SceneNamesUpdated; 
     public event Action<OutputState>? RecordingStateChanged;
     public event Action<OutputState>? StreamingStateChanged;
     public event Action<StreamStatusEventArgs>? StreamStatusChanged;
-    public event Action<HeartBeatEventArgs>? HeartBeat;
+    public event Action<HeartBeatEventArgs>? HeartBeatChanged;
     
     public OBSWebsocket Obs { get; }
+
+    public bool IsConnected { get; private set; }
+    public string CurrentScene { get; private set; } = "Unknown";
     public IEnumerable<string> SceneNames => sceneNames;
-    
+    public OutputState RecordingState { get; private set; } = OutputState.Unknown;
+    public OutputState StreamingState { get; private set; } = OutputState.Unknown;
+    public StreamStatusEventArgs? StreamStatus { get; private set; }
+    public HeartBeatEventArgs? HeartBeat { get; private set; }
+
     public void Initialize()
     {
         Obs.Connected += ObsConnected;
         Obs.Disconnected += ObsDisconnected;
+        IsConnected = Obs.IsConnected;
         Obs.RecordingStateChanged += ObsRecordingStateChanged;
         Obs.StreamingStateChanged += ObsStreamingStateChanged;
         Obs.StreamStatus += ObsStreamStatusChanged;
         Obs.SceneListChanged += ObsSceneListChanged;
         Obs.Heartbeat += ObsHeartBeat;
+        Obs.SceneChanged += ObsSceneChanged;
         
         Task.Run(() => RepeatTryConnect(3, 5000));
     }
@@ -55,6 +63,7 @@ internal class ObsManager : IInitializable, IDisposable
         Obs.StreamStatus -= ObsStreamStatusChanged;
         Obs.SceneListChanged -= ObsSceneListChanged;
         Obs.Heartbeat -= ObsHeartBeat;
+        Obs.SceneChanged -= ObsSceneChanged;
         
         if (Obs.IsConnected)
         {
@@ -131,6 +140,19 @@ internal class ObsManager : IInitializable, IDisposable
         return Obs.IsConnected;
     }
 
+    public async Task ToggleStreaming()
+    {
+        if (!Obs.IsConnected) return;
+        if ((await Obs.GetStreamingStatus()).IsStreaming)
+        {
+            await Obs.StopStreaming();
+        }
+        else
+        {
+            await Obs.StartStreaming();
+        }
+    }
+
     private async Task RepeatTryConnect(int attempts, int intervalMilliseconds)
     {
         try
@@ -162,25 +184,32 @@ internal class ObsManager : IInitializable, IDisposable
 
     private async void ObsConnected(object sender, EventArgs e)
     {
-        if (isConnected)
+        if (IsConnected)
         {
             return;
         }
-        
         Plugin.Log.Info("OBS Connected.");
-        ConnectionStateChanged?.Invoke(isConnected = true);
+        IsConnected = true;
+        ConnectionStateChanged?.Invoke(true);
         await TryFetchSceneList();
     }
     
     private void ObsDisconnected(object sender, EventArgs e)
     {
-        if (!isConnected)
+        if (!IsConnected)
         {
             return;
         }
         
         Plugin.Log.Info("OBS Disconnected.");
-        ConnectionStateChanged?.Invoke(isConnected = false);
+        IsConnected = false;
+        ConnectionStateChanged?.Invoke(false);
+    }
+
+    private void ObsSceneChanged(object sender, SceneChangeEventArgs e)
+    {
+        CurrentScene = e.NewSceneName;
+        SceneChanged?.Invoke(e.NewSceneName);
     }
 
     private async void ObsSceneListChanged(object sender, EventArgs e)
@@ -191,40 +220,47 @@ internal class ObsManager : IInitializable, IDisposable
     private void ObsRecordingStateChanged(object sender, OutputStateChangedEventArgs e)
     {
         Plugin.Log.Info($"Recording State Changed: {e.OutputState}");
+        RecordingState = e.OutputState;
         RecordingStateChanged?.Invoke(e.OutputState);
     }
 
     private void ObsStreamingStateChanged(object sender, OutputStateChangedEventArgs e)
     {
         Plugin.Log.Info($"Streaming State Changed: {e.OutputState}");
+        StreamingState = e.OutputState;
         StreamingStateChanged?.Invoke(e.OutputState);
     }
     
     private void ObsStreamStatusChanged(object sender, StreamStatusEventArgs status)
     {
+        StreamStatus = status;
         StreamStatusChanged?.Invoke(status);
-        Plugin.Log.Info($"Stream Status Changed\n" +
-                        $"Stream Time: {status.TotalStreamTime}s\n" +
-                        $"Bitrate: {status.KbitsPerSec / 1024f:N2} Mbps\n" +
-                        $"FPS: {status.FPS} FPS\n" +
-                        $"Strain: {status.Strain * 100}%\n" +
-                        $"DroppedFrames: {status.DroppedFrames} frames\n" +
-                        $"TotalFrames: {status.TotalFrames} frames");
+        Plugin.Log.Info($"Stream Status Changed " +
+                         $"(T:{status.TotalStreamTime}s) " +
+                         $"(B:{status.KbitsPerSec / 1024f:N2}Mbps) " +
+                         $"(F:{status.TotalFrames}) " +
+                         $"(D:{status.DroppedFrames})");
     }
 
     private void ObsHeartBeat(object sender, HeartBeatEventArgs e)
     {
-        HeartBeat?.Invoke(e);
+        HeartBeat = e;
+        HeartBeatChanged?.Invoke(e);
     }
 
     private async Task TryFetchSceneList()
     {
         try
         {
-            var sceneList = await Obs.GetSceneList().ConfigureAwait(false);
+            var sceneList = await Obs.GetSceneList();
+            var currentScene = await Obs.GetCurrentScene();
+            
             sceneNames.Clear();
             sceneNames.AddRange(sceneList.Scenes.Select(s => s.Name));
             SceneNamesUpdated?.Invoke(sceneNames);
+            
+            CurrentScene = currentScene.Name;
+            SceneChanged?.Invoke(CurrentScene);
         }
         catch (Exception ex)
         {

@@ -1,6 +1,8 @@
-﻿using BeatSaberMarkupLanguage.Attributes;
+﻿using System.Collections.Generic;
+using BeatSaberMarkupLanguage.Attributes;
 using BeatSaberMarkupLanguage.ViewControllers;
 using JetBrains.Annotations;
+using OBSControl.Managers;
 using OBSControl.UI.Formatters;
 using UnityEngine;
 using Zenject;
@@ -18,7 +20,23 @@ internal class ControlScreen : BSMLAutomaticViewController
 
     [Inject, UsedImplicitly]
     public ControlScreenStreamingTab ControlScreenStreamingTab { get; } = null!;
+
+    private bool windowLocked;
+    public bool WindowLocked
+    {
+        get => windowLocked;
+        set
+        {
+            windowLocked = value;
+            NotifyPropertyChanged();
+            NotifyPropertyChanged(nameof(WindowUnlocked));
+        }
+    }
     
-    public bool WindowLocked { get; set; } = false;
     public bool WindowUnlocked => !WindowLocked;
+    
+    [UIAction("#post-parse")]
+    public void PostParse()
+    {
+    }
 }
