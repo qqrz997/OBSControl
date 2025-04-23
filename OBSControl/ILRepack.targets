@@ -12,12 +12,22 @@
     </PropertyGroup>
     <ItemGroup>
       <InputAssemblies Include="obs-websocket-dotnet.dll" />
-      <InputAssemblies Include="SuperSocket.ClientEngine.dll" />
-      <InputAssemblies Include="WebSocket4Net.dll" />
+      <InputAssemblies Include="Websocket.Client.dll" />
+      <InputAssemblies Include="Microsoft.Extensions.Logging.Abstractions.dll" />
+      <InputAssemblies Include="System.Reactive.dll" />
+      <InputAssemblies Include="System.Threading.Channels.dll" />
+      <InputAssemblies Include="System.Threading.Tasks.Dataflow.dll" />
+      <InputAssemblies Include="System.Threading.Tasks.Extensions.dll" />
+      <InputAssemblies Include="System.Runtime.CompilerServices.Unsafe.dll" />
     </ItemGroup>
     <ItemGroup>
       <!-- Must be a fully qualified name -->
-      <!-- <DoNotInternalizeAssemblies Include="System.Threading.Tasks.Dataflow.dll" /> -->
+      <DoNotInternalizeAssemblies Include="Microsoft.Extensions.Logging.Abstractions.dll" />
+      <DoNotInternalizeAssemblies Include="System.Reactive.dll" />
+      <DoNotInternalizeAssemblies Include="System.Threading.Channels.dll" />
+      <DoNotInternalizeAssemblies Include="System.Threading.Tasks.Dataflow.dll" />
+      <DoNotInternalizeAssemblies Include="System.Threading.Tasks.Extensions.dll" />
+      <DoNotInternalizeAssemblies Include="System.Runtime.CompilerServices.Unsafe.dll" />
     </ItemGroup>
     <ILRepack
         Parallel="true"

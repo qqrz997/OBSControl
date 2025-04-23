@@ -27,7 +27,7 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
     public void Initialize()
     {
         obsManager.ConnectionStateChanged += ObsConnectionStateChanged;
-        obsManager.HeartBeatChanged += ObsHeartBeatChanged;
+        // obsManager.HeartBeatChanged += ObsHeartBeatChanged;
         obsManager.SceneChanged += ObsSceneChanged;
         obsManager.RecordingStateChanged += ObsRecordingStateChanged;
         obsManager.StreamingStateChanged += ObsStreamingStateChanged;
@@ -36,7 +36,7 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
     public void Dispose()
     {
         obsManager.ConnectionStateChanged -= ObsConnectionStateChanged;
-        obsManager.HeartBeatChanged -= ObsHeartBeatChanged;
+        // obsManager.HeartBeatChanged -= ObsHeartBeatChanged;
         obsManager.SceneChanged -= ObsSceneChanged;
         obsManager.RecordingStateChanged -= ObsRecordingStateChanged;
         obsManager.StreamingStateChanged -= ObsStreamingStateChanged;
@@ -46,7 +46,7 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
     public void PostParse()
     {
         ObsConnectionStateChanged(obsManager.IsConnected);
-        if (obsManager.HeartBeat != null) ObsHeartBeatChanged(obsManager.HeartBeat);
+        // if (obsManager.HeartBeat != null) ObsHeartBeatChanged(obsManager.HeartBeat);
         ObsSceneChanged(obsManager.CurrentScene);
         ObsRecordingStateChanged(obsManager.RecordingState);
         ObsStreamingStateChanged(obsManager.StreamingState);
@@ -150,7 +150,7 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
         try
         {
             if (IsConnected) obsManager.Obs.Disconnect();
-            else await obsManager.TryConnect();
+            else obsManager.TryConnect();
         }
         catch (Exception ex)
         {
@@ -169,19 +169,19 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
     
     private void ObsStreamingStateChanged(OutputState outputState) => IsStreaming = outputState switch
     {
-        OutputState.Started => true,
-        OutputState.Stopped => false,
+        OutputState.OBS_WEBSOCKET_OUTPUT_STARTED => true,
+        OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED => false,
         _ => IsStreaming
     };
 
     private void ObsRecordingStateChanged(OutputState outputState) => IsRecording = outputState switch
     {
-        OutputState.Started => true,
-        OutputState.Stopped => false,
+        OutputState.OBS_WEBSOCKET_OUTPUT_STARTED => true,
+        OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED => false,
         _ => IsRecording
     };
 
-    private void ObsHeartBeatChanged(HeartBeatEventArgs e) => RenderMissedFrames = e.Stats.RenderMissedFrames;
+    // private void ObsHeartBeatChanged(HeartBeatEventArgs e) => RenderMissedFrames = e.Stats.RenderMissedFrames;
     
     public event PropertyChangedEventHandler? PropertyChanged;
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)

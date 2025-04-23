@@ -8,6 +8,7 @@ using OBSControl.Managers;
 using OBSControl.UI.Formatters;
 using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Types;
+using OBSWebsocketDotNet.Types.Events;
 using Zenject;
 
 namespace OBSControl.UI;
@@ -28,26 +29,26 @@ internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyP
     {
         obsManager.StreamingStateChanged += ObsStreamingStateChanged;
         obsManager.SceneChanged += ObsSceneChanged;
-        obsManager.HeartBeatChanged += ObsHeartBeatChanged;
-        obsManager.StreamStatusChanged += ObsStreamingStatusChanged;
+        // obsManager.HeartBeatChanged += ObsHeartBeatChanged;
+        // obsManager.StreamStatusChanged += ObsStreamingStatusChanged;
     }
 
-    private void ObsStreamingStatusChanged(StreamStatusEventArgs e)
-    {
-        StreamTime = e.TotalStreamTime;
-    }
+    // private void ObsStreamingStatusChanged(StreamStateChangedEventArgs e)
+    // {
+    //     StreamTime = e.TotalStreamTime;
+    // }
 
-    private void ObsHeartBeatChanged(HeartBeatEventArgs e)
-    {
-        
-    }
+    // private void ObsHeartBeatChanged(HeartBeatEventArgs e)
+    // {
+    //     
+    // }
 
     private void ObsSceneChanged(string sceneName) => CurrentScene = sceneName;
 
     private void ObsStreamingStateChanged(OutputState outputState) => IsStreaming = outputState switch
     {
-        OutputState.Started => true,
-        OutputState.Stopped => false,
+        OutputState.OBS_WEBSOCKET_OUTPUT_STARTED => true,
+        OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED => false,
         _ => isStreaming
     };
 
@@ -55,8 +56,8 @@ internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyP
     {
         obsManager.StreamingStateChanged -= ObsStreamingStateChanged;
         obsManager.SceneChanged -= ObsSceneChanged;
-        obsManager.HeartBeatChanged -= ObsHeartBeatChanged;
-        obsManager.StreamStatusChanged -= ObsStreamingStatusChanged;
+        // obsManager.HeartBeatChanged -= ObsHeartBeatChanged;
+        // obsManager.StreamStatusChanged -= ObsStreamingStatusChanged;
     }
 
     [UIAction("#post-parse")]
@@ -176,7 +177,7 @@ internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyP
         try
         {
             StreamButtonInteractable = false;
-            await obsManager.ToggleStreaming();
+            obsManager.Obs.ToggleStream();
             await Task.Delay(2000);
         }
         catch (Exception ex)

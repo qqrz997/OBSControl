@@ -52,7 +52,7 @@ internal class RecordingManager : IInitializable, IDisposable
         Plugin.Log.Debug("TryStartRecording");
         try
         {
-            recordingFolderPath = await obsManager.Obs.GetRecordingFolder().ConfigureAwait(false);
+            recordingFolderPath = obsManager.Obs.GetRecordDirectory();
         }
         catch (Exception ex)
         {
@@ -73,8 +73,8 @@ internal class RecordingManager : IInitializable, IDisposable
             tries++;
             try
             {
-                await obsManager.Obs.SetFilenameFormatting(fileFormat).ConfigureAwait(false);
-                currentFormat = await obsManager.Obs.GetFilenameFormatting().ConfigureAwait(false);
+                // await obsManager.Obs.SetFilenameFormatting(fileFormat);
+                // currentFormat = await obsManager.Obs.GetFilenameFormatting();
             }
             catch (Exception ex)
             {
@@ -86,7 +86,7 @@ internal class RecordingManager : IInitializable, IDisposable
         currentFileFormat = fileFormat;
         string startScene = pluginConfig.StartSceneName;
         string gameScene = pluginConfig.GameSceneName;
-        string[] availableScenes = await GetAvailableScenes().ConfigureAwait(false);
+        var availableScenes = GetAvailableScenes();
         if (!availableScenes.Contains(startScene))
             startScene = string.Empty;
         if (!availableScenes.Contains(gameScene))
@@ -96,21 +96,21 @@ internal class RecordingManager : IInitializable, IDisposable
         {
             if (validIntro)
             {
-                int transitionDuration = await obsManager.Obs.GetTransitionDuration().ConfigureAwait(false);
-                await obsManager.Obs.SetTransitionDuration(0).ConfigureAwait(false);
+                var transitionDuration = obsManager.Obs.GetCurrentSceneTransition().Duration.GetValueOrDefault();
+                obsManager.Obs.SetCurrentSceneTransitionDuration(0);
                 Plugin.Log.Info($"Setting intro OBS scene to '{startScene}'");
-                await obsManager.Obs.SetCurrentScene(startScene).ConfigureAwait(false);
-                await obsManager.Obs.SetTransitionDuration(transitionDuration).ConfigureAwait(false);
-                await obsManager.Obs.StartRecording().ConfigureAwait(false);
-                await Task.Delay(TimeSpan.FromSeconds(pluginConfig.StartSceneDuration)).ConfigureAwait(false);
+                obsManager.Obs.SetCurrentProgramScene(startScene);
+                obsManager.Obs.SetCurrentSceneTransitionDuration(transitionDuration);
+                obsManager.Obs.StartRecord();
+                await Task.Delay(TimeSpan.FromSeconds(pluginConfig.StartSceneDuration));
                 Plugin.Log.Info($"Setting game OBS scene to '{gameScene}'");
-                await obsManager.Obs.SetCurrentScene(gameScene).ConfigureAwait(false);
+                obsManager.Obs.SetCurrentProgramScene(gameScene);
             }
             else
             {
                 if (!string.IsNullOrEmpty(gameScene))
-                    await obsManager.Obs.SetCurrentScene(gameScene).ConfigureAwait(false);
-                await obsManager.Obs.StartRecording().ConfigureAwait(false);
+                    obsManager.Obs.SetCurrentProgramScene(gameScene);
+                obsManager.Obs.StartRecord();
             }
 
         }
@@ -121,11 +121,11 @@ internal class RecordingManager : IInitializable, IDisposable
         }
     }
 
-    private async Task<string[]> GetAvailableScenes()
+    private string[] GetAvailableScenes()
     {
         try
         {
-            return (await obsManager.Obs.GetSceneList().ConfigureAwait(false)).Scenes.Select(s => s.Name).ToArray();
+            return obsManager.Obs.GetSceneList().Scenes.Select(s => s.Name).ToArray();
         }
         catch (Exception ex)
         {
@@ -143,11 +143,11 @@ internal class RecordingManager : IInitializable, IDisposable
         }
     }
     
-    private async Task TryStopRecordingAsync(string? renameTo)
+    private void TryStopRecordingAsync(string? renameTo)
     {
         string endScene = pluginConfig.EndSceneName;
         string gameScene = pluginConfig.GameSceneName;
-        string[] availableScenes = await GetAvailableScenes().ConfigureAwait(false);
+        string[] availableScenes = GetAvailableScenes();
         if (!availableScenes.Contains(endScene))
             endScene = string.Empty;
         if (!availableScenes.Contains(gameScene))
@@ -157,7 +157,7 @@ internal class RecordingManager : IInitializable, IDisposable
         {
             videoRenameString = renameTo;
             float delay = pluginConfig.RecordingStopDelay;
-            await obsManager.Obs.StopRecording().ConfigureAwait(false);
+            obsManager.Obs.StopRecord();
             recordingCurrentLevel = false;
         }
         catch (ErrorResponseException ex)
@@ -263,24 +263,20 @@ internal class RecordingManager : IInitializable, IDisposable
         Plugin.Log.Debug($"Recording State Changed: {type}");
         switch (type)
         {
-            case OutputState.Starting:
+            case OutputState.OBS_WEBSOCKET_OUTPUT_STARTING:
+            case OutputState.OBS_WEBSOCKET_OUTPUT_STARTED:
                 recordingCurrentLevel = true;
                 break;
-            case OutputState.Started:
-                recordingCurrentLevel = true;
-                Task.Run(() => obsManager.Obs.SetFilenameFormatting(DefaultFileFormat));
-                break;
-            case OutputState.Stopping:
+            case OutputState.OBS_WEBSOCKET_OUTPUT_STOPPING:
                 recordingCurrentLevel = false;
                 break;
-            case OutputState.Stopped:
+            case OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED:
                 recordingCurrentLevel = false;
                 RenameLastRecording(videoRenameString);
                 videoRenameString = null;
                 break;
-            case OutputState.Unknown:
-            case OutputState.Paused:
-            case OutputState.Resumed:
+            case OutputState.OBS_WEBSOCKET_OUTPUT_PAUSED:
+            case OutputState.OBS_WEBSOCKET_OUTPUT_RESUMED:
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(type), type, null);
