@@ -16,10 +16,15 @@ namespace OBSControl.UI;
 internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyPropertyChanged
 {
     private readonly ObsManager obsManager;
+    private readonly StreamingManager streamingManager;
     
-    public ControlScreenStreamingTab(ObsManager obsManager, BoolFormatter boolFormatter, TimeFormatter timeFormatter)
+    public ControlScreenStreamingTab(
+        ObsManager obsManager,
+        StreamingManager streamingManager,
+        BoolFormatter boolFormatter, TimeFormatter timeFormatter)
     {
         this.obsManager = obsManager;
+        this.streamingManager = streamingManager;
         
         BoolFormatter = boolFormatter;
         TimeFormatter = timeFormatter;
@@ -30,13 +35,13 @@ internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyP
         obsManager.StreamingStateChanged += ObsStreamingStateChanged;
         obsManager.SceneChanged += ObsSceneChanged;
         // obsManager.HeartBeatChanged += ObsHeartBeatChanged;
-        // obsManager.StreamStatusChanged += ObsStreamingStatusChanged;
+        streamingManager.StreamStatusChanged += ObsStreamingStatusChanged;
     }
 
-    // private void ObsStreamingStatusChanged(StreamStateChangedEventArgs e)
-    // {
-    //     StreamTime = e.TotalStreamTime;
-    // }
+    private void ObsStreamingStatusChanged(OutputStatus outputStatus)
+    {
+        StreamTime = (int)(outputStatus.Duration / 1000);
+    }
 
     // private void ObsHeartBeatChanged(HeartBeatEventArgs e)
     // {
@@ -57,7 +62,7 @@ internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyP
         obsManager.StreamingStateChanged -= ObsStreamingStateChanged;
         obsManager.SceneChanged -= ObsSceneChanged;
         // obsManager.HeartBeatChanged -= ObsHeartBeatChanged;
-        // obsManager.StreamStatusChanged -= ObsStreamingStatusChanged;
+        streamingManager.StreamStatusChanged -= ObsStreamingStatusChanged;
     }
 
     [UIAction("#post-parse")]

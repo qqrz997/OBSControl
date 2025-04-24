@@ -18,6 +18,7 @@ internal class AppInstaller : Installer
         Container.BindInstance(pluginConfig).AsSingle();
         
         Container.BindInterfacesAndSelfTo<RecordingManager>().AsSingle();
+        Container.BindInterfacesAndSelfTo<StreamingManager>().AsSingle();
         Container.BindInterfacesAndSelfTo<ObsManager>().AsSingle();
 
         Container.BindInterfacesTo<HarmonyPatchManager>().AsSingle();

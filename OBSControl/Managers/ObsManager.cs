@@ -28,7 +28,6 @@ internal class ObsManager : IInitializable, IDisposable
     public event Action<IEnumerable<string>>? SceneNamesUpdated; 
     public event Action<OutputState>? RecordingStateChanged;
     public event Action<OutputState>? StreamingStateChanged;
-    // public event Action<StreamStatusEventArgs>? StreamStatusChanged;
     // public event Action<HeartBeatEventArgs>? HeartBeatChanged;
     
     public IOBSWebsocket Obs { get; }
@@ -48,7 +47,6 @@ internal class ObsManager : IInitializable, IDisposable
         IsConnected = Obs.IsConnected;
         Obs.RecordStateChanged += ObsRecordStateChanged;
         Obs.StreamStateChanged += ObsStreamStateChanged;
-        // Obs.StreamStatus += ObsStreamStatusChanged;
         Obs.SceneListChanged += ObsSceneListChanged;
         // Obs.Heartbeat += ObsHeartBeat;
         Obs.CurrentProgramSceneChanged += ObsCurrentProgramSceneChanged;
@@ -62,7 +60,6 @@ internal class ObsManager : IInitializable, IDisposable
         Obs.Disconnected -= ObsDisconnected;
         Obs.RecordStateChanged -= ObsRecordStateChanged;
         Obs.StreamStateChanged -= ObsStreamStateChanged;
-        // Obs.StreamStatus -= ObsStreamStatusChanged;
         Obs.SceneListChanged -= ObsSceneListChanged;
         // Obs.Heartbeat -= ObsHeartBeat;
         Obs.CurrentProgramSceneChanged -= ObsCurrentProgramSceneChanged;
@@ -219,17 +216,6 @@ internal class ObsManager : IInitializable, IDisposable
         StreamingState = e.OutputState.State;
         StreamingStateChanged?.Invoke(e.OutputState.State);
     }
-    
-    // private void ObsStreamStatusChanged(object sender, StreamStatusEventArgs status)
-    // {
-    //     StreamStatus = status;
-    //     StreamStatusChanged?.Invoke(status);
-    //     Plugin.Log.Info($"Stream Status Changed " +
-    //                      $"(T:{status.TotalStreamTime}s) " +
-    //                      $"(B:{status.KbitsPerSec / 1024f:N2}Mbps) " +
-    //                      $"(F:{status.TotalFrames}) " +
-    //                      $"(D:{status.DroppedFrames})");
-    // }
 
     // private void ObsHeartBeat(object sender, HeartBeatEventArgs e)
     // {
