@@ -22,7 +22,7 @@ internal class ControlScreenManager : IInitializable, IDisposable
 
     public void Initialize()
     {
-        controlScreen.WindowLockClicked += ControlScreenWindowLockClicked;
+        controlScreen.WindowLockClicked += UpdateMovable;
         floatingScreen.HandleReleased += ControlScreenHandleReleased;
         
         floatingScreen.SetRootViewController(controlScreen, ViewController.AnimationType.None);
@@ -36,7 +36,7 @@ internal class ControlScreenManager : IInitializable, IDisposable
 
     public void Dispose()
     {
-        controlScreen.WindowLockClicked -= ControlScreenWindowLockClicked;
+        controlScreen.WindowLockClicked -= UpdateMovable;
         if (floatingScreen == null) return;
         floatingScreen.HandleReleased -= ControlScreenHandleReleased;
     }
@@ -51,11 +51,6 @@ internal class ControlScreenManager : IInitializable, IDisposable
     {
         if (floatingScreen == null) return;
         floatingScreen.ShowHandle = !pluginConfig.ControlScreenLocked;
-    }
-
-    private void ControlScreenWindowLockClicked()
-    {
-        UpdateMovable();
     }
 
     private void ControlScreenHandleReleased(object sender, FloatingScreenHandleEventArgs eventArgs)
