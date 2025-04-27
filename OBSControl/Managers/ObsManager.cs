@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using OBSWebsocketDotNet;
@@ -28,7 +27,6 @@ internal class ObsManager : IInitializable, IDisposable
     public event Action<IEnumerable<string>>? SceneNamesUpdated; 
     public event Action<OutputState>? RecordingStateChanged;
     public event Action<OutputState>? StreamingStateChanged;
-    // public event Action<HeartBeatEventArgs>? HeartBeatChanged;
     
     public IOBSWebsocket Obs { get; }
 
@@ -37,8 +35,6 @@ internal class ObsManager : IInitializable, IDisposable
     public IEnumerable<string> SceneNames => sceneNames;
     public OutputState RecordingState { get; private set; } = OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED;
     public OutputState StreamingState { get; private set; } = OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED;
-    // public StreamStatusEventArgs? StreamStatus { get; private set; }
-    // public HeartBeatEventArgs? HeartBeat { get; private set; }
 
     public void Initialize()
     {
@@ -48,7 +44,6 @@ internal class ObsManager : IInitializable, IDisposable
         Obs.RecordStateChanged += ObsRecordStateChanged;
         Obs.StreamStateChanged += ObsStreamStateChanged;
         Obs.SceneListChanged += ObsSceneListChanged;
-        // Obs.Heartbeat += ObsHeartBeat;
         Obs.CurrentProgramSceneChanged += ObsCurrentProgramSceneChanged;
         
         Task.Run(() => RepeatTryConnect(3, 5000));
@@ -61,7 +56,6 @@ internal class ObsManager : IInitializable, IDisposable
         Obs.RecordStateChanged -= ObsRecordStateChanged;
         Obs.StreamStateChanged -= ObsStreamStateChanged;
         Obs.SceneListChanged -= ObsSceneListChanged;
-        // Obs.Heartbeat -= ObsHeartBeat;
         Obs.CurrentProgramSceneChanged -= ObsCurrentProgramSceneChanged;
         
         if (Obs.IsConnected)
@@ -216,12 +210,6 @@ internal class ObsManager : IInitializable, IDisposable
         StreamingState = e.OutputState.State;
         StreamingStateChanged?.Invoke(e.OutputState.State);
     }
-
-    // private void ObsHeartBeat(object sender, HeartBeatEventArgs e)
-    // {
-    //     HeartBeat = e;
-    //     HeartBeatChanged?.Invoke(e);
-    // }
 
     private void TryFetchSceneList()
     {

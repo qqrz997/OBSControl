@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using BeatSaberMarkupLanguage.Attributes;
 using OBSControl.Managers;
 using OBSControl.UI.Formatters;
-using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Types;
-using OBSWebsocketDotNet.Types.Events;
 using Zenject;
 
 namespace OBSControl.UI;

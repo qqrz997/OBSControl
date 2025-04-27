@@ -1,10 +1,6 @@
-﻿using System.Collections.Generic;
-using BeatSaberMarkupLanguage.Attributes;
+﻿using BeatSaberMarkupLanguage.Attributes;
 using BeatSaberMarkupLanguage.ViewControllers;
 using JetBrains.Annotations;
-using OBSControl.Managers;
-using OBSControl.UI.Formatters;
-using UnityEngine;
 using Zenject;
 
 namespace OBSControl.UI;
