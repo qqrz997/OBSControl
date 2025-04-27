@@ -53,9 +53,8 @@ internal class ControlScreenManager : IInitializable, IDisposable
         floatingScreen.ShowHandle = !pluginConfig.ControlScreenLocked;
     }
 
-    private void ControlScreenWindowLockClicked(bool locked)
+    private void ControlScreenWindowLockClicked()
     {
-        pluginConfig.ControlScreenLocked = locked;
         UpdateMovable();
     }
 

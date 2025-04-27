@@ -39,6 +39,8 @@
   <ItemGroup>
     <EmbeddedResource Include="UI\SettingsView.bsml" />
     <EmbeddedResource Include="UI\ControlScreen.bsml" />
+    <EmbeddedResource Include="Resources\pinned.png" />
+    <EmbeddedResource Include="Resources\unpinned.png" />
   </ItemGroup>
   
   <ItemGroup>

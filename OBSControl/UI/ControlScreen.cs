@@ -1,8 +1,10 @@
 ﻿using System;
 using BeatSaberMarkupLanguage.Attributes;
+using BeatSaberMarkupLanguage.Components;
 using BeatSaberMarkupLanguage.ViewControllers;
 using JetBrains.Annotations;
 using Zenject;
+using static OBSControl.Utilities.PluginResources;
 
 namespace OBSControl.UI;
 
@@ -10,46 +12,25 @@ namespace OBSControl.UI;
 internal class ControlScreen : BSMLAutomaticViewController
 {
     [Inject] private readonly PluginConfig pluginConfig = null!;
+
+    [UIComponent("window-lock-button")] private readonly ClickableImage windowLockButton = null!;
     
-    [Inject, UsedImplicitly]
-    public ControlScreenMainTab ControlScreenMainTab { get; } = null!;
-
-    [Inject, UsedImplicitly]
-    public ControlScreenRecordingTab ControlScreenRecordingTab { get; } = null!;
-
-    [Inject, UsedImplicitly]
-    public ControlScreenStreamingTab ControlScreenStreamingTab { get; } = null!;
-
+    [Inject] public ControlScreenMainTab ControlScreenMainTab { get; } = null!;
+    [Inject] public ControlScreenRecordingTab ControlScreenRecordingTab { get; } = null!;
+    [Inject] public ControlScreenStreamingTab ControlScreenStreamingTab { get; } = null!;
+    
+    public event Action? WindowLockClicked;
+    
     [UIAction("#post-parse")]
     public void PostParse()
     {
-        WindowLocked = pluginConfig.ControlScreenLocked;
-    }
-    
-    public event Action<bool>? WindowLockClicked;
-    
-    private bool windowLocked;
-    public bool WindowLocked
-    {
-        get => windowLocked;
-        set
-        {
-            windowLocked = value;
-            NotifyPropertyChanged();
-            NotifyPropertyChanged(nameof(WindowUnlocked));
-        }
-    }
-    public bool WindowUnlocked => !WindowLocked;
-
-    public void LockWindow()
-    {
-        WindowLocked = true;
-        WindowLockClicked?.Invoke(true);
+        windowLockButton.sprite = pluginConfig.ControlScreenLocked ? PinnedIcon : UnpinnedIcon;
     }
 
-    public void UnlockWindow()
+    public void ToggleWindowLocked()
     {
-        WindowLocked = false;
-        WindowLockClicked?.Invoke(false);
+        pluginConfig.ControlScreenLocked = !pluginConfig.ControlScreenLocked;
+        WindowLockClicked?.Invoke();
+        windowLockButton.sprite = pluginConfig.ControlScreenLocked ? PinnedIcon : UnpinnedIcon;
     }
 }

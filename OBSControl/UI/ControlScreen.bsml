@@ -21,10 +21,7 @@
         
         <horizontal child-align='MiddleRight' preferred-height='7' min-width='15' child-control-width='true'
                     child-control-height='true' child-expand-height='false' child-expand-width='false' >
-            <clickable-image on-click='UnlockWindow' src='#LockIcon' active='~WindowLocked'
-                             preferred-height='6' preferred-width='10' preserve-aspect='true'/>
-            
-            <clickable-image on-click='LockWindow' src='#LockIcon' active='~WindowUnlocked'
+            <clickable-image id="window-lock-button" on-click='ToggleWindowLocked'
                              preferred-height='6' preferred-width='10' preserve-aspect='true'/>
         </horizontal>
         
