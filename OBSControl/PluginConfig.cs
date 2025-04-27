@@ -51,6 +51,7 @@ internal class PluginConfig
     public virtual string EndSceneName { get; set; } = string.Empty;
     
     // Control screen config
+    public virtual bool ShowControlScreen { get; set; } = true;
     public virtual Vector3 ControlScreenPosition { get; set; } = new (0f, 1f, 1f);
     public virtual Quaternion ControlScreenRotation { get; set; } = Quaternion.identity;
 }

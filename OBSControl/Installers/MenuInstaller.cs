@@ -8,8 +8,9 @@ internal class MenuInstaller : Installer
 {
     public override void InstallBindings()
     {
+        Container.BindInterfacesTo<MenuButtonManager>().AsSingle();
         Container.BindInterfacesTo<SettingsMenuManager>().AsSingle();
-        Container.BindInterfacesTo<ControlScreenManager>().AsSingle();
+        Container.BindInterfacesAndSelfTo<ControlScreenManager>().AsSingle();
         
         Container.BindInterfacesAndSelfTo<PluginSettingsView>().AsSingle();
         Container.Bind<AudioDeviceSettingsView>().AsSingle();

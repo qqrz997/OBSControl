@@ -29,6 +29,8 @@ internal class ControlScreenManager : IInitializable, IDisposable
 
         floatingScreen.transform.position = pluginConfig.ControlScreenPosition;
         floatingScreen.transform.rotation = pluginConfig.ControlScreenRotation;
+        
+        UpdateVisibility();
     }
 
     public void Dispose()
@@ -37,6 +39,12 @@ internal class ControlScreenManager : IInitializable, IDisposable
         {
             floatingScreen.HandleReleased -= ControlScreenHandleReleased;
         }
+    }
+
+    public void UpdateVisibility()
+    {
+        if (floatingScreen == null) return;
+        floatingScreen.gameObject.SetActive(pluginConfig.ShowControlScreen);
     }
 
     private void ControlScreenHandleReleased(object sender, FloatingScreenHandleEventArgs eventArgs)
