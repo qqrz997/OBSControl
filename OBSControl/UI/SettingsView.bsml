@@ -27,7 +27,7 @@
 <!--                             options='RecordStartOptions' apply-on-change='true'-->
 <!--                             hover-hint='How recording should be started.'/>-->
 
-        <slider-setting text='Level Start Delay' value='LevelStartDelay' integer-only='false'
+        <slider-setting text='Level Start Delay' value='LevelStartDelay' integer-only='false' apply-on-change="true"
                         min='0' max='20' increment='0.1' show-buttons="true" formatter='FloatToSeconds'
                         hover-hint='Amount of time to delay after clicking Play.'/>
 
@@ -39,7 +39,7 @@
 <!--                             options='RecordStopOptions' apply-on-change='true'-->
 <!--                             hover-hint='How recording should be stopped, ignored for recordings started with SceneSequence.'/>-->
       
-        <slider-setting value='RecordingStopDelay' text='Recording Stop Delay' integer-only='false'
+        <slider-setting value='RecordingStopDelay' text='Recording Stop Delay' integer-only='false' apply-on-change="true"
                         min='0' max='20' increment='0.1' show-buttons="true" formatter='FloatToSeconds'
                         hover-hint='Amount of time to delay before stopping recording, ignored for recordings started with SceneSequence..'/>
 
@@ -63,7 +63,7 @@
                                options='SceneSelectOptions' apply-on-change='true'
                                hover-hint='Name of the scene to show before the Game Scene.'/>
 
-        <slider-setting text='Start Scene Duration' value='StartSceneDuration' integer-only='false'
+        <slider-setting text='Start Scene Duration' value='StartSceneDuration' integer-only='false' apply-on-change="true"
                         min='0' max='20' increment='0.1' show-buttons="true" formatter='FloatToSeconds'
                         hover-hint='How long the Start Scene is shown before switching to the Game Scene.'/>
 
@@ -75,7 +75,7 @@
 <!--                        min='0' max='20' increment='0.1' formatter='formatter-seconds'-->
 <!--                        hover-hint='Amount of time to delay the End Scene switch.'/>-->
         
-        <slider-setting text='End Scene Duration' value='EndSceneDuration' integer-only='false'
+        <slider-setting text='End Scene Duration' value='EndSceneDuration' integer-only='false' apply-on-change="true"
                         min='0' max='20' increment='0.1' show-buttons="true" formatter='FloatToSeconds'
                         hover-hint='How long the End Scene is shown before the recording is stopped.'/>
 
