@@ -13,28 +13,20 @@ namespace OBSControl.Managers;
 
 internal class RecordingManager : IInitializable, IDisposable
 {
-    private const string DefaultFileFormat = "%CCYY-%MM-%DD %hh-%mm-%ss";
-    private const string DefaultDateTimeFormat = "yyyyMMddHHmmss";
-
     private readonly PluginConfig pluginConfig;
     private readonly ObsManager obsManager;
-    private readonly PlayerDataModel playerDataModel;
 
     public RecordingManager(
         PluginConfig pluginConfig,
-        ObsManager obsManager,
-        PlayerDataModel playerDataModel)
+        ObsManager obsManager)
     {
         this.pluginConfig = pluginConfig;
         this.obsManager = obsManager;
-        this.playerDataModel = playerDataModel;
     }
     
     private bool recordingCurrentLevel;
-
-    private string? recordingFolderPath;
-    private string? currentFileFormat;
-    private string? videoRenameString;
+    private string? newRecordingFilename;
+    private string? lastRecordingFilename;
 
     public void Initialize()
     {
@@ -44,75 +36,60 @@ internal class RecordingManager : IInitializable, IDisposable
     public void Dispose()
     {
         obsManager.RecordingStateChanged -= ObsRecordingStateChanged;
-        StopIfRecording(string.Empty);
+        if (recordingCurrentLevel) TryStopRecordingAsync();
     }
 
-    private async Task TryStartRecordingAsync(string fileFormat)
+    public void StartRecordingLevel()
     {
-        Plugin.Log.Debug("TryStartRecording");
+        Task.Run(TryStartRecordingAsync);
+    }
+
+    public void OnStandardLevelFinished(ExtendedLevelData levelData, ExtendedCompletionResults levelCompletionResults)
+    {
         try
         {
-            recordingFolderPath = obsManager.Obs.GetRecordDirectory();
+            var newFileName = FileRenaming.GetFilenameString(
+                pluginConfig.RecordingFileFormat, levelData, levelCompletionResults, 
+                pluginConfig.InvalidCharacterSubstitute, pluginConfig.ReplaceSpacesWith);
+
+            if (recordingCurrentLevel) TryStopRecordingAsync(newFileName);
         }
         catch (Exception ex)
         {
-            Plugin.Log.Error($"Error getting recording folder from OBS: {ex.Message}");
+            Plugin.Log.Error($"Error generating new file name: {ex}");
             Plugin.Log.Debug(ex);
+        }
+    }
+    
+    private async Task TryStartRecordingAsync()
+    {
+        if (obsManager.Obs.GetRecordStatus().IsRecording)
+        {
             return;
         }
-
-        int tries = 0;
-        string? currentFormat = null;
-        do
-        {
-            if (tries > 0)
-            {
-                Plugin.Log.Debug($"({tries}) Failed to set OBS's FilenameFormatting to {fileFormat} retrying in 50ms");
-                await Task.Delay(50);
-            }
-            tries++;
-            try
-            {
-                // await obsManager.Obs.SetFilenameFormatting(fileFormat);
-                // currentFormat = await obsManager.Obs.GetFilenameFormatting();
-            }
-            catch (Exception ex)
-            {
-                Plugin.Log.Error($"Error getting current filename format from OBS: {ex.Message}");
-                Plugin.Log.Debug(ex);
-            }
-        } while (currentFormat != fileFormat && tries < 10);
         
-        currentFileFormat = fileFormat;
-        string startScene = pluginConfig.StartSceneName;
-        string gameScene = pluginConfig.GameSceneName;
         var availableScenes = GetAvailableScenes();
-        if (!availableScenes.Contains(startScene))
-            startScene = string.Empty;
-        if (!availableScenes.Contains(gameScene))
-            gameScene = string.Empty;
-        bool validIntro = ValidateScenes(availableScenes, startScene, gameScene);
+        var startScene = availableScenes.Contains(pluginConfig.StartSceneName) ? pluginConfig.StartSceneName : string.Empty;
+        var gameScene = availableScenes.Contains(pluginConfig.GameSceneName) ? pluginConfig.GameSceneName : string.Empty;
         try
         {
-            if (validIntro)
-            {
-                var transitionDuration = obsManager.Obs.GetCurrentSceneTransition().Duration.GetValueOrDefault();
-                obsManager.Obs.SetCurrentSceneTransitionDuration(0);
-                Plugin.Log.Info($"Setting intro OBS scene to '{startScene}'");
-                obsManager.Obs.SetCurrentProgramScene(startScene);
-                obsManager.Obs.SetCurrentSceneTransitionDuration(transitionDuration);
-                obsManager.Obs.StartRecord();
-                await Task.Delay(TimeSpan.FromSeconds(pluginConfig.StartSceneDuration));
-                Plugin.Log.Info($"Setting game OBS scene to '{gameScene}'");
-                obsManager.Obs.SetCurrentProgramScene(gameScene);
-            }
-            else
+            if (!ValidateScenes(availableScenes, startScene, gameScene))
             {
                 if (!string.IsNullOrEmpty(gameScene))
                     obsManager.Obs.SetCurrentProgramScene(gameScene);
                 obsManager.Obs.StartRecord();
+                return;
             }
 
+            var transitionDuration = obsManager.Obs.GetCurrentSceneTransition().Duration.GetValueOrDefault();
+            obsManager.Obs.SetCurrentSceneTransitionDuration(0);
+            Plugin.Log.Info($"Setting intro OBS scene to '{startScene}'");
+            obsManager.Obs.SetCurrentProgramScene(startScene);
+            obsManager.Obs.SetCurrentSceneTransitionDuration(transitionDuration);
+            obsManager.Obs.StartRecord();
+            await Task.Delay(TimeSpan.FromSeconds(pluginConfig.StartSceneDuration));
+            Plugin.Log.Info($"Setting game OBS scene to '{gameScene}'");
+            obsManager.Obs.SetCurrentProgramScene(gameScene);
         }
         catch (Exception ex)
         {
@@ -135,29 +112,21 @@ internal class RecordingManager : IInitializable, IDisposable
         }
     }
 
-    private void StopIfRecording(string fileName)
+    private void TryStopRecordingAsync(string? fileName = null)
     {
-        if (recordingCurrentLevel)
-        {
-            Task.Run(() => TryStopRecordingAsync(fileName));
-        }
-    }
-    
-    private void TryStopRecordingAsync(string? renameTo)
-    {
-        string endScene = pluginConfig.EndSceneName;
-        string gameScene = pluginConfig.GameSceneName;
-        string[] availableScenes = GetAvailableScenes();
-        if (!availableScenes.Contains(endScene))
-            endScene = string.Empty;
-        if (!availableScenes.Contains(gameScene))
-            gameScene = string.Empty;
-        bool validOutro = ValidateScenes(availableScenes, endScene, gameScene);
         try
         {
-            videoRenameString = renameTo;
-            float delay = pluginConfig.RecordingStopDelay;
-            obsManager.Obs.StopRecord();
+            // TODO: reimplement scene changes
+            // string[] availableScenes = GetAvailableScenes();
+            // var endScene = availableScenes.Contains(pluginConfig.EndSceneName) ? pluginConfig.EndSceneName : string.Empty;
+            // var gameScene = availableScenes.Contains(pluginConfig.GameSceneName) ? pluginConfig.GameSceneName : string.Empty;
+            // bool validOutro = ValidateScenes(availableScenes, endScene, gameScene);
+            
+            // TODO: reimplement delay
+            // float delay = pluginConfig.RecordingStopDelay;
+            
+            newRecordingFilename = fileName;
+            lastRecordingFilename = obsManager.Obs.StopRecord();
             recordingCurrentLevel = false;
         }
         catch (ErrorResponseException ex)
@@ -169,91 +138,6 @@ internal class RecordingManager : IInitializable, IDisposable
         catch (Exception ex)
         {
             Plugin.Log.Error($"Unexpected exception trying to stop recording: {ex.Message}");
-            Plugin.Log.Debug(ex);
-        }
-    }
-
-    private void RenameLastRecording(string? newName)
-    {
-        if (newName == null)
-        {
-            Plugin.Log.Warn("Unable to rename last recording, provided new name is null.");
-            return;
-        }
-        if (newName.Length == 0)
-        {
-            Plugin.Log.Info("Skipping file rename, no RecordingFileFormat provided.");
-            return;
-        }
-        string? recordingFolder = recordingFolderPath;
-        string? fileFormat = currentFileFormat;
-        currentFileFormat = null;
-        if (string.IsNullOrEmpty(recordingFolder))
-        {
-            Plugin.Log.Warn("Unable to determine current recording folder, unable to rename.");
-            return;
-        }
-        if (string.IsNullOrEmpty(fileFormat))
-        {
-            Plugin.Log.Warn("Last recorded filename not stored, unable to rename.");
-            return;
-        }
-
-        var directory = new DirectoryInfo(recordingFolder);
-        if (!directory.Exists)
-        {
-            Plugin.Log.Warn("Recording directory doesn't exist, unable to rename.");
-            return;
-        }
-        var targetFile = directory.GetFiles(fileFormat + "*").OrderByDescending(f => f.CreationTimeUtc).FirstOrDefault();
-        if (targetFile == null)
-        {
-            Plugin.Log.Warn("Couldn't find recorded file, unable to rename.");
-            return;
-        }
-
-        string fileExtension = targetFile.Extension;
-        Plugin.Log.Info($"Attempting to rename {fileFormat}{fileExtension} to {newName} with an extension of {fileExtension}");
-        string newFile = newName + fileExtension;
-        int index = 2;
-        while (File.Exists(Path.Combine(directory.FullName, newFile)))
-        {
-            Plugin.Log.Debug($"File exists: {Path.Combine(directory.FullName, newFile)}");
-            newFile = newName + $"({index})" + fileExtension;
-            index++;
-        }
-        try
-        {
-            Plugin.Log.Debug($"Attempting to rename to '{newFile}'");
-            targetFile.MoveTo(Path.Combine(directory.FullName, newFile));
-        }
-        catch (Exception ex)
-        {
-            Plugin.Log.Error($"Unable to rename {targetFile.Name} to {newFile}: {ex.Message}");
-            Plugin.Log.Debug(ex);
-        }
-    }
-
-    public void StartRecordingLevel()
-    {
-        string fileFormat = DateTime.Now.ToString(DefaultDateTimeFormat);
-        Plugin.Log.Debug($"Starting recording, file format: {fileFormat}");
-        Task.Run(() => TryStartRecordingAsync(fileFormat));
-    }
-
-    public void OnStandardLevelFinished(ExtendedLevelData levelData, ExtendedCompletionResults levelCompletionResults)
-    {
-        try
-        {
-            var newFileName = FileRenaming.GetFilenameString(
-                pluginConfig.RecordingFileFormat, levelData, levelCompletionResults, 
-                pluginConfig.InvalidCharacterSubstitute, pluginConfig.ReplaceSpacesWith);
-
-            StopIfRecording(newFileName);
-        }
-        catch (Exception ex)
-        {
-            Plugin.Log.Error($"Error generating new file name: {ex}");
             Plugin.Log.Debug(ex);
         }
     }
@@ -272,14 +156,63 @@ internal class RecordingManager : IInitializable, IDisposable
                 break;
             case OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED:
                 recordingCurrentLevel = false;
-                RenameLastRecording(videoRenameString);
-                videoRenameString = null;
+                if (newRecordingFilename is null) break;
+                RenameLastRecording(newRecordingFilename);
+                newRecordingFilename = null;
                 break;
             case OutputState.OBS_WEBSOCKET_OUTPUT_PAUSED:
             case OutputState.OBS_WEBSOCKET_OUTPUT_RESUMED:
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(type), type, null);
+        }
+    }
+
+    private void RenameLastRecording(string newNameWithoutExtension)
+    {
+        if (string.IsNullOrEmpty(newNameWithoutExtension))
+        {
+            Plugin.Log.Warn("Skipping file rename, new name is invalid.");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(lastRecordingFilename))
+        {
+            Plugin.Log.Warn("Couldn't determine last recording filename, unable to rename.");
+            return;
+        }
+        
+        var lastRecordingFile = new FileInfo(lastRecordingFilename!);
+        if (!lastRecordingFile.Exists)
+        {
+            Plugin.Log.Warn($"Couldn't find last recording file '{lastRecordingFilename}', unable to rename.");
+            return;
+        }
+        
+        var recordDirectory = obsManager.Obs.GetRecordDirectory();
+        if (string.IsNullOrEmpty(recordDirectory))
+        {
+            Plugin.Log.Warn("Unable to determine current recording folder, unable to rename.");
+            return;
+        }
+        
+        var directory = new DirectoryInfo(recordDirectory);
+        if (!directory.Exists)
+        {
+            Plugin.Log.Warn("Recording directory doesn't exist, unable to rename.");
+            return;
+        }
+
+        try
+        {
+            string newFileName = $"{newNameWithoutExtension}{lastRecordingFile.Extension}";
+            Plugin.Log.Info($"Attempting to rename {lastRecordingFile.Name} to {newFileName}");
+            lastRecordingFile.MoveTo(PathExt.UniqueCombine(directory.FullName, newFileName));
+        }
+        catch (Exception ex)
+        {
+            Plugin.Log.Error($"Unable to rename last recording: {ex.Message}");
+            Plugin.Log.Debug(ex);
         }
     }
 
