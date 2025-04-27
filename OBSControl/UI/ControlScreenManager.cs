@@ -22,29 +22,41 @@ internal class ControlScreenManager : IInitializable, IDisposable
 
     public void Initialize()
     {
+        controlScreen.WindowLockClicked += ControlScreenWindowLockClicked;
         floatingScreen.HandleReleased += ControlScreenHandleReleased;
-        floatingScreen.ShowHandle = true;
         
         floatingScreen.SetRootViewController(controlScreen, ViewController.AnimationType.None);
-
         floatingScreen.transform.position = pluginConfig.ControlScreenPosition;
         floatingScreen.transform.rotation = pluginConfig.ControlScreenRotation;
+        
+        floatingScreen.ShowHandle = !pluginConfig.ControlScreenLocked;
         
         UpdateVisibility();
     }
 
     public void Dispose()
     {
-        if (floatingScreen != null)
-        {
-            floatingScreen.HandleReleased -= ControlScreenHandleReleased;
-        }
+        controlScreen.WindowLockClicked -= ControlScreenWindowLockClicked;
+        if (floatingScreen == null) return;
+        floatingScreen.HandleReleased -= ControlScreenHandleReleased;
     }
 
     public void UpdateVisibility()
     {
         if (floatingScreen == null) return;
         floatingScreen.gameObject.SetActive(pluginConfig.ShowControlScreen);
+    }
+
+    private void UpdateMovable()
+    {
+        if (floatingScreen == null) return;
+        floatingScreen.ShowHandle = !pluginConfig.ControlScreenLocked;
+    }
+
+    private void ControlScreenWindowLockClicked(bool locked)
+    {
+        pluginConfig.ControlScreenLocked = locked;
+        UpdateMovable();
     }
 
     private void ControlScreenHandleReleased(object sender, FloatingScreenHandleEventArgs eventArgs)

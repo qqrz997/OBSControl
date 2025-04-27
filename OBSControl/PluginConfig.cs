@@ -52,6 +52,7 @@ internal class PluginConfig
     
     // Control screen config
     public virtual bool ShowControlScreen { get; set; } = true;
+    public virtual bool ControlScreenLocked { get; set; } = true;
     public virtual Vector3 ControlScreenPosition { get; set; } = new (0f, 1f, 1f);
     public virtual Quaternion ControlScreenRotation { get; set; } = Quaternion.identity;
 }
