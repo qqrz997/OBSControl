@@ -1,8 +1,15 @@
 ﻿<settings-container xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
                     xsi:noNamespaceSchemaLocation='https://monkeymanboy.github.io/BSML-Docs/BSMLSchema.xsd'>
+  
   <bool-setting text='Enabled' value='Enabled'/>
-  <string-setting text='Server Address' value='ServerAddress'
-                  hover-hint='OBS websocket server address (usually in the form of ws://ip:port)'/>
+
+  <horizontal pref-height="3"/>
+  
+  <string-setting text='Server IP' value='WsIpAddress'
+                  hover-hint='OBS websocket server address i.e. 192.168.0.3'/>
+  
+  <string-setting text='Server Port' value='WsPort'
+                  hover-hint='OBS websocket server port. 4455 by default.'/>
 
   <string-setting text='Server Password' value='ServerPassword'
                   hover-hint='Password for the OBS websocket server, leave blank if none.'/>

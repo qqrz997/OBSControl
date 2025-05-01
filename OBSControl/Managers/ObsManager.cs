@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using OBSControl.Utilities;
 using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Communication;
 using OBSWebsocketDotNet.Types;
@@ -71,18 +72,18 @@ internal class ObsManager : IInitializable, IDisposable
             return;
         }
         
-        var serverAddress = pluginConfig.ServerAddress;
-        if(string.IsNullOrEmpty(serverAddress))
+        if(!pluginConfig.AddressIsValid())
         {
-            Plugin.Log.Error("ServerAddress cannot be null or empty.");
+            Plugin.Log.Error("Server address or port is invalid.");
             return;
         }
 
+        var serverAddress = pluginConfig.GetFullAddress();
         string message;
         try
         {
-            Obs.ConnectAsync(serverAddress!, pluginConfig.ServerPassword);
-            message = $"Finished attempting to connect to {pluginConfig.ServerAddress}";
+            Obs.ConnectAsync(serverAddress, pluginConfig.ServerPassword);
+            message = $"Finished attempting to connect to {serverAddress}";
             if (message != lastTryConnectMessage)
             {
                 Plugin.Log.Info(message);
@@ -91,7 +92,7 @@ internal class ObsManager : IInitializable, IDisposable
         }
         catch (AuthFailureException)
         {
-            message = $"Authentication failed connecting to server {pluginConfig.ServerAddress}.";
+            message = $"Authentication failed connecting to server {serverAddress}.";
             if (message != lastTryConnectMessage)
             {
                 Plugin.Log.Info(message);
@@ -102,7 +103,7 @@ internal class ObsManager : IInitializable, IDisposable
         }
         catch (ErrorResponseException ex)
         {
-            message = $"Failed to connect to server {pluginConfig.ServerAddress}: {ex.Message}.";
+            message = $"Failed to connect to server {serverAddress}: {ex.Message}.";
             if (message != lastTryConnectMessage)
             {
                 Plugin.Log.Info(message);
@@ -114,7 +115,7 @@ internal class ObsManager : IInitializable, IDisposable
         }
         catch (Exception ex)
         {
-            message = $"Failed to connect to server {pluginConfig.ServerAddress}: {ex.Message}.";
+            message = $"Failed to connect to server {serverAddress}: {ex.Message}.";
             if (message != lastTryConnectMessage)
             {
                 Plugin.Log.Info(message);
@@ -127,7 +128,7 @@ internal class ObsManager : IInitializable, IDisposable
 
         if (Obs.IsConnected)
         {
-            Plugin.Log.Info($"Connected to OBS @ {pluginConfig.ServerAddress}");
+            Plugin.Log.Info($"Connected to OBS @ {serverAddress}");
         }
     }
 
@@ -135,13 +136,13 @@ internal class ObsManager : IInitializable, IDisposable
     {
         try
         {
-            if (string.IsNullOrEmpty(pluginConfig.ServerAddress))
+            if (!pluginConfig.AddressIsValid())
             {
-                Plugin.Log.Error("The ServerAddress in the config is null or empty. Unable to connect to OBS.");
+                Plugin.Log.Error("Server address or port is invalid. Unable to connect to OBS.");
                 return;
             }
             
-            Plugin.Log.Info($"Attempting to connect to {pluginConfig.ServerAddress}");
+            Plugin.Log.Info("Repeatedly attempting to connect to OBS websocket server.");
 
             while (attempts-- > 0 && !Obs.IsConnected)
             {

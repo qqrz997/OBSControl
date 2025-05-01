@@ -58,12 +58,18 @@ internal class PluginSettingsView : IInitializable, IDisposable
         set => pluginConfig.Enabled = value;
     }
 
-    public string ServerAddress
+    public string WsIpAddress
     {
-        get => pluginConfig.ServerAddress ?? string.Empty;
-        set => pluginConfig.ServerAddress = value;
+        get => pluginConfig.WsIpAddress ?? string.Empty;
+        set => pluginConfig.WsIpAddress = value;
     }
 
+    public string WsPort
+    {
+        get => pluginConfig.WsPort ?? string.Empty;
+        set => pluginConfig.WsPort = value;
+    }
+    
     public string ServerPassword
     {
         get => pluginConfig.ServerPassword ?? string.Empty;

@@ -10,7 +10,8 @@ internal class PluginConfig
 {
     public virtual bool Enabled { get; set; } = true;
     
-    public virtual string? ServerAddress { get; set; } = "ws://127.0.0.1:4444";
+    public virtual string? WsIpAddress { get; set; } = "192.168.0.0";
+    public virtual string? WsPort { get; set; } = "4455";
     public virtual string? ServerPassword { get; set; } = string.Empty;
 
     private float levelStartDelay = 3f;
