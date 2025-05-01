@@ -13,7 +13,7 @@ public static class ModifiersExtensions
         {
             GameplayModifiers.EnergyType.Bar => null,
             GameplayModifiers.EnergyType.Battery => "BE",
-            _ => throw new NotImplementedException("Encountered unknown energy modifier.")
+            _ => throw new ArgumentOutOfRangeException(nameof(modifiers.energyType))
         };
         var songSpeed = modifiers.songSpeed switch
         {
@@ -21,14 +21,14 @@ public static class ModifiersExtensions
             GameplayModifiers.SongSpeed.Faster => "FS",
             GameplayModifiers.SongSpeed.Slower => "SS",
             GameplayModifiers.SongSpeed.SuperFast => "SF",
-            _ => throw new NotImplementedException("Encountered unknown song speed.")
+            _ => throw new ArgumentOutOfRangeException(nameof(modifiers.songSpeed))
         };
         var enabledObstacleType = modifiers.enabledObstacleType switch
         {
             GameplayModifiers.EnabledObstacleType.All => null,
             GameplayModifiers.EnabledObstacleType.NoObstacles => "NO",
             GameplayModifiers.EnabledObstacleType.FullHeightOnly => "FHO",
-            _ => throw new NotImplementedException("Encountered unknown enabled walls modifier.")
+            _ => throw new ArgumentOutOfRangeException(nameof(modifiers.enabledObstacleType))
         };
         
         if (energyType != null)
