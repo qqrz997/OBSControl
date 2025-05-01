@@ -143,11 +143,10 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
 
     public async void ConnectButtonClicked()
     {
-        ConnectButtonInteractable = false;
         try
         {
-            if (IsConnected) obsManager.Obs.Disconnect();
-            else obsManager.TryConnect();
+            ConnectButtonInteractable = false;
+            obsManager.ToggleConnect();
         }
         catch (Exception ex)
         {
@@ -155,9 +154,11 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
             Plugin.Log.Debug(ex);
             ConnectButtonText = "Error";
         }
-        
-        await Task.Delay(1000);
-        ConnectButtonInteractable = true;
+        finally
+        {
+            await Task.Delay(1000);
+            ConnectButtonInteractable = true;
+        }
     }
 
     private void ObsConnectionStateChanged(bool connected) => IsConnected = connected;

@@ -63,8 +63,19 @@ internal class ObsManager : IInitializable, IDisposable
         }
     }
 
-    private string? lastTryConnectMessage;
-    public void TryConnect()
+    public void ToggleConnect()
+    {
+        if (Obs.IsConnected)
+        {
+            Obs.Disconnect();
+        }
+        else
+        {
+            TryConnect();
+        }
+    }
+
+    private void TryConnect()
     {
         if (Obs.IsConnected)
         {
@@ -79,56 +90,19 @@ internal class ObsManager : IInitializable, IDisposable
         }
 
         var serverAddress = pluginConfig.GetFullAddress();
-        string message;
         try
         {
             Obs.ConnectAsync(serverAddress, pluginConfig.ServerPassword);
-            message = $"Finished attempting to connect to {serverAddress}";
-            if (message != lastTryConnectMessage)
-            {
-                Plugin.Log.Info(message);
-                lastTryConnectMessage = message;
-            }
+            Plugin.Log.Info($"Finished attempting to connect to {serverAddress}");
         }
         catch (AuthFailureException)
         {
-            message = $"Authentication failed connecting to server {serverAddress}.";
-            if (message != lastTryConnectMessage)
-            {
-                Plugin.Log.Info(message);
-                lastTryConnectMessage = message;
-            }
-
-            return;
-        }
-        catch (ErrorResponseException ex)
-        {
-            message = $"Failed to connect to server {serverAddress}: {ex.Message}.";
-            if (message != lastTryConnectMessage)
-            {
-                Plugin.Log.Info(message);
-                lastTryConnectMessage = message;
-            }
-
-            Plugin.Log.Debug(ex);
-            return;
+            Plugin.Log.Info($"Authentication failed connecting to server {serverAddress}.");
         }
         catch (Exception ex)
         {
-            message = $"Failed to connect to server {serverAddress}: {ex.Message}.";
-            if (message != lastTryConnectMessage)
-            {
-                Plugin.Log.Info(message);
-                Plugin.Log.Debug(ex);
-                lastTryConnectMessage = message;
-            }
-
-            return;
-        }
-
-        if (Obs.IsConnected)
-        {
-            Plugin.Log.Info($"Connected to OBS @ {serverAddress}");
+            Plugin.Log.Warn($"Failed to connect to server {serverAddress}: {ex.Message}.");
+            Plugin.Log.Debug(ex);
         }
     }
 
@@ -159,14 +133,14 @@ internal class ObsManager : IInitializable, IDisposable
 
     private void ObsConnected(object sender, EventArgs e)
     {
-        Plugin.Log.Info("OBS Connected.");
+        Plugin.Log.Info($"OBS Connected to {pluginConfig.GetFullAddress()}.");
         ConnectionStateChanged?.Invoke(true);
         TryFetchSceneList();
     }
     
     private void ObsDisconnected(object sender, ObsDisconnectionInfo disconnectionInfo)
     {
-        Plugin.Log.Info("OBS Disconnected.");
+        Plugin.Log.Info($"OBS Disconnected: {disconnectionInfo.WebsocketDisconnectionInfo.CloseStatusDescription}");
         ConnectionStateChanged?.Invoke(false);
     }
 
