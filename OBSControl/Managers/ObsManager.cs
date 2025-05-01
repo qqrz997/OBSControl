@@ -30,7 +30,6 @@ internal class ObsManager : IInitializable, IDisposable
     
     public IOBSWebsocket Obs { get; }
 
-    public bool IsConnected { get; private set; }
     public string CurrentScene { get; private set; } = "Unknown";
     public IEnumerable<string> SceneNames => sceneNames;
     public OutputState RecordingState { get; private set; } = OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED;
@@ -40,7 +39,6 @@ internal class ObsManager : IInitializable, IDisposable
     {
         Obs.Connected += ObsConnected;
         Obs.Disconnected += ObsDisconnected;
-        IsConnected = Obs.IsConnected;
         Obs.RecordStateChanged += ObsRecordStateChanged;
         Obs.StreamStateChanged += ObsStreamStateChanged;
         Obs.SceneListChanged += ObsSceneListChanged;
@@ -65,19 +63,19 @@ internal class ObsManager : IInitializable, IDisposable
     }
 
     private string? lastTryConnectMessage;
-    public bool TryConnect()
+    public void TryConnect()
     {
+        if (Obs.IsConnected)
+        {
+            Plugin.Log.Info("TryConnect: OBS is already connected.");
+            return;
+        }
+        
         var serverAddress = pluginConfig.ServerAddress;
         if(string.IsNullOrEmpty(serverAddress))
         {
             Plugin.Log.Error("ServerAddress cannot be null or empty.");
-            return false;
-        }
-        
-        if (Obs.IsConnected)
-        {
-            Plugin.Log.Info("TryConnect: OBS is already connected.");
-            return true;
+            return;
         }
 
         string message;
@@ -100,7 +98,7 @@ internal class ObsManager : IInitializable, IDisposable
                 lastTryConnectMessage = message;
             }
 
-            return false;
+            return;
         }
         catch (ErrorResponseException ex)
         {
@@ -112,7 +110,7 @@ internal class ObsManager : IInitializable, IDisposable
             }
 
             Plugin.Log.Debug(ex);
-            return false;
+            return;
         }
         catch (Exception ex)
         {
@@ -124,13 +122,13 @@ internal class ObsManager : IInitializable, IDisposable
                 lastTryConnectMessage = message;
             }
 
-            return false;
+            return;
         }
 
         if (Obs.IsConnected)
+        {
             Plugin.Log.Info($"Connected to OBS @ {pluginConfig.ServerAddress}");
-
-        return Obs.IsConnected;
+        }
     }
 
     private async Task RepeatTryConnect(int attempts, int intervalMilliseconds)
@@ -145,14 +143,10 @@ internal class ObsManager : IInitializable, IDisposable
             
             Plugin.Log.Info($"Attempting to connect to {pluginConfig.ServerAddress}");
 
-            while (attempts-- > 0 && !TryConnect())
+            while (attempts-- > 0 && !Obs.IsConnected)
             {
+                TryConnect();
                 await Task.Delay(intervalMilliseconds);
-            }
-
-            if (Obs.IsConnected)
-            {
-                Plugin.Log.Info($"OBS {Obs.GetVersion().OBSStudioVersion} is connected.");
             }
         }
         catch (Exception ex)
@@ -164,25 +158,14 @@ internal class ObsManager : IInitializable, IDisposable
 
     private void ObsConnected(object sender, EventArgs e)
     {
-        if (IsConnected)
-        {
-            return;
-        }
         Plugin.Log.Info("OBS Connected.");
-        IsConnected = Obs.IsConnected;
         ConnectionStateChanged?.Invoke(true);
         TryFetchSceneList();
     }
     
     private void ObsDisconnected(object sender, ObsDisconnectionInfo disconnectionInfo)
     {
-        if (!IsConnected)
-        {
-            return;
-        }
-        
         Plugin.Log.Info("OBS Disconnected.");
-        IsConnected = Obs.IsConnected;
         ConnectionStateChanged?.Invoke(false);
     }
 

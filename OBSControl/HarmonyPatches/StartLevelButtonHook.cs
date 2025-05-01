@@ -42,7 +42,7 @@ internal class StartLevelButtonHook : IAffinity
             return true;
         }
 
-        if (!obsManager.IsConnected)
+        if (!obsManager.Obs.IsConnected)
         {
             Plugin.Log.Warn("Not connected to OBS, skipping StartLevel override.");
             return true;

@@ -42,7 +42,7 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
     [UIAction("#post-parse")]
     public void PostParse()
     {
-        ObsConnectionStateChanged(obsManager.IsConnected);
+        ObsConnectionStateChanged(obsManager.Obs.IsConnected);
         // if (obsManager.HeartBeat != null) ObsHeartBeatChanged(obsManager.HeartBeat);
         ObsSceneChanged(obsManager.CurrentScene);
         ObsRecordingStateChanged(obsManager.RecordingState);
