@@ -16,6 +16,7 @@ internal class ExtendedCompletionResults
         FullCombo = results.fullCombo;
         LevelEndStateType = results.levelEndStateType;
         LevelEndAction = results.levelEndAction;
+        Energy = results.energy;
         AverageCutScore = (int)Math.Round(results.averageCutScoreForNotesWithFullScoreScoringType);
         GoodCutsCount = results.goodCutsCount;
         BadCutsCount = results.badCutsCount;
@@ -34,6 +35,7 @@ internal class ExtendedCompletionResults
     public bool FullCombo { get; }
     public LevelCompletionResults.LevelEndStateType LevelEndStateType { get; }
     public LevelCompletionResults.LevelEndAction LevelEndAction { get; }
+    public float Energy { get; }
     public int AverageCutScore { get; }
     public int GoodCutsCount { get; }
     public int BadCutsCount { get; }

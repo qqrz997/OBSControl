@@ -2,7 +2,6 @@
 using BeatSaberMarkupLanguage.Attributes;
 using BeatSaberMarkupLanguage.Components;
 using BeatSaberMarkupLanguage.ViewControllers;
-using JetBrains.Annotations;
 using Zenject;
 using static OBSControl.Utilities.PluginResources;
 

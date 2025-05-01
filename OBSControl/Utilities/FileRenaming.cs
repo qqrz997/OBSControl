@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using OBSControl.Models;
+using UnityEngine;
+using static LevelCompletionResults;
 
 namespace OBSControl.Utilities;
 
@@ -151,7 +153,7 @@ internal static class FileRenaming
     {
         LevelDataType.None => string.Empty,
         LevelDataType.BeatsPerMinute => $"{levelData.BeatsPerMinute:N2}".TrimEnd('0', '.', ','),
-        LevelDataType.DifficultyShortName => FormatShortNameDifficulty(levelData.Difficulty),
+        LevelDataType.DifficultyShortName => levelData.Difficulty.FormatShortNameDifficulty(),
         LevelDataType.DifficultyName => levelData.Difficulty.ToString(),
         LevelDataType.LevelAuthorName => int.TryParse(config, out var levelMax) && levelData.LevelAuthorName.Length > levelMax ? levelData.LevelAuthorName.Substring(0, levelMax) : levelData.LevelAuthorName,
         LevelDataType.LevelId => levelData.LevelID,
@@ -167,16 +169,16 @@ internal static class FileRenaming
         LevelDataType.EndSongTimeNoLabels => SongDurationNoLabels(TimeSpan.FromSeconds(results.EndSongTime)),
         LevelDataType.EndSongTimeLabeled => SongDurationWithLabels(TimeSpan.FromSeconds(results.EndSongTime)),
         LevelDataType.FullCombo => results.FullCombo ? "FC" : string.Empty,
-        LevelDataType.Modifiers => results.GameplayModifiers.ToModifierString(),
+        LevelDataType.Modifiers => results.FormatModifiers(),
         LevelDataType.GoodCutsCount => results.GoodCutsCount.ToString(),
-        LevelDataType.LevelEndType => FormatLevelEndState(results),
-        LevelDataType.LevelIncompleteType => FormatLevelIncompleteState(results),
+        LevelDataType.LevelEndType => results.FormatLevelEndState(),
+        LevelDataType.LevelIncompleteType => results.FormatLevelIncompleteState(),
         LevelDataType.MaxCombo => results.MaxCombo.ToString(),
         LevelDataType.MissedCount => results.MissedCount.ToString(),
         LevelDataType.ModifiedScore => results.ModifiedScore.ToString(),
         LevelDataType.Rank => results.Rank.ToString(),
         LevelDataType.RawScore => results.RawScore.ToString(),
-        LevelDataType.ScorePercent => FormatScorePercent(results.ScorePercent),
+        LevelDataType.ScorePercent => results.FormatScorePercent(),
         _ => "NA"
     };
 
@@ -193,35 +195,93 @@ internal static class FileRenaming
     private static string SongDurationNoLabels(TimeSpan time) => $"{time.Minutes}.{time.Seconds:00}";
     private static string SongDurationWithLabels(TimeSpan time) => $"{time.Minutes}m.{time.Seconds:00}s";
 
-    private static string FormatScorePercent(float scorePercent)
+    private static string FormatScorePercent(this ExtendedCompletionResults results)
     {
-        Plugin.Log.Info($"Formatting score percent: {scorePercent}%");
-        var str = $"{scorePercent:F3}";
+        var str = $"{results.ScorePercent:F3}";
         return str.Substring(0, str.Length - 1);
     }
 
-    private static string FormatLevelEndState(this ExtendedCompletionResults results) => results.LevelEndAction switch
-    {
-        LevelCompletionResults.LevelEndAction.Quit or LevelCompletionResults.LevelEndAction.Restart => "Quit",
-        _ => results.LevelEndStateType switch
+    private static string FormatLevelEndState(this ExtendedCompletionResults results) => 
+        results.LevelEndAction switch
         {
-            LevelCompletionResults.LevelEndStateType.Incomplete => "Unknown",
-            LevelCompletionResults.LevelEndStateType.Cleared => "Cleared",
-            LevelCompletionResults.LevelEndStateType.Failed => "Failed",
-            _ => "Unknown",
-        }
-    };
+            LevelEndAction.Quit or LevelEndAction.Restart => "Quit",
+            _ => results.LevelEndStateType switch
+            {
+                LevelEndStateType.Incomplete => "Unknown",
+                LevelEndStateType.Cleared => "Cleared",
+                LevelEndStateType.Failed => "Failed",
+                _ => "Unknown",
+            }
+        };
 
     private static string FormatLevelIncompleteState(this ExtendedCompletionResults results) => 
         results.LevelEndAction switch
         {
-            LevelCompletionResults.LevelEndAction.Quit or LevelCompletionResults.LevelEndAction.Restart => "Quit",
+            LevelEndAction.Quit or LevelEndAction.Restart => "Quit",
             _ => results.LevelEndStateType switch
             {
-                LevelCompletionResults.LevelEndStateType.Incomplete => "Unknown",
-                LevelCompletionResults.LevelEndStateType.Cleared => string.Empty,
-                LevelCompletionResults.LevelEndStateType.Failed => "Failed",
+                LevelEndStateType.Incomplete => "Unknown",
+                LevelEndStateType.Cleared => string.Empty,
+                LevelEndStateType.Failed => "Failed",
                 _ => string.Empty,
             }
         };
+    
+    private static string FormatModifiers(this ExtendedCompletionResults results, string separator = "-")
+    {
+        var modifiers = results.GameplayModifiers;
+        var activeModifiers = new List<string>();
+        var energyType = modifiers.energyType switch
+        {
+            GameplayModifiers.EnergyType.Bar => null,
+            GameplayModifiers.EnergyType.Battery => "BE",
+            _ => throw new ArgumentOutOfRangeException(nameof(modifiers.energyType))
+        };
+        var songSpeed = modifiers.songSpeed switch
+        {
+            GameplayModifiers.SongSpeed.Normal => null,
+            GameplayModifiers.SongSpeed.Faster => "FS",
+            GameplayModifiers.SongSpeed.Slower => "SS",
+            GameplayModifiers.SongSpeed.SuperFast => "SF",
+            _ => throw new ArgumentOutOfRangeException(nameof(modifiers.songSpeed))
+        };
+        var enabledObstacleType = modifiers.enabledObstacleType switch
+        {
+            GameplayModifiers.EnabledObstacleType.All => null,
+            GameplayModifiers.EnabledObstacleType.NoObstacles => "NO",
+            GameplayModifiers.EnabledObstacleType.FullHeightOnly => "FHO",
+            _ => throw new ArgumentOutOfRangeException(nameof(modifiers.enabledObstacleType))
+        };
+        if (energyType != null)
+            activeModifiers.Add(energyType);
+        if (modifiers.noFailOn0Energy && Mathf.Approximately(results.Energy, 0))
+            activeModifiers.Add("NF");
+        if (modifiers.instaFail)
+            activeModifiers.Add("IF");
+        if (modifiers.failOnSaberClash)
+            activeModifiers.Add("FSC");
+        if (enabledObstacleType != null)
+            activeModifiers.Add(enabledObstacleType);
+        if (modifiers.fastNotes)
+            activeModifiers.Add("FN");
+        if (modifiers.strictAngles)
+            activeModifiers.Add("SA");
+        if (modifiers.disappearingArrows)
+            activeModifiers.Add("DA");
+        if (modifiers.ghostNotes)
+            activeModifiers.Add("GN");
+        if (modifiers.noBombs)
+            activeModifiers.Add("NB");
+        if (songSpeed != null)
+            activeModifiers.Add(songSpeed);
+        if (modifiers.noArrows)
+            activeModifiers.Add("NA");
+        if (modifiers.proMode)
+            activeModifiers.Add("PM");
+        if (modifiers.zenMode)
+            activeModifiers.Add("ZM");
+        if (modifiers.smallCubes)
+            activeModifiers.Add("SC");
+        return string.Join(separator, activeModifiers);
+    }
 }
