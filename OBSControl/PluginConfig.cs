@@ -45,6 +45,13 @@ internal class PluginConfig
         get => endSceneDuration;
         set => endSceneDuration = value < 0 ? 0f : (float)Math.Round(value, 1);
     }
+
+    private float endSceneDelay;
+    public float EndSceneDelay
+    {
+        get => endSceneDelay;
+        set => endSceneDelay = value < 0 ? 0f : (float)Math.Round(value, 1);
+    }
     
     public virtual string StartSceneName { get; set; } = string.Empty;
     public virtual string GameSceneName { get; set; } = string.Empty;

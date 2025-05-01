@@ -28,15 +28,19 @@ internal class RecordingManager : IInitializable, IDisposable
     private bool switchToGameSceneOnRecordEnd;
     private string? newRecordingFilename;
     private string? lastRecordingFilename;
+    private HashSet<string> sceneNames = [];
 
     public void Initialize()
     {
         obsManager.RecordingStateChanged += ObsRecordingStateChanged;
+        obsManager.SceneNamesUpdated += ObsSceneNamesUpdated;
+        ObsSceneNamesUpdated(obsManager.SceneNames);
     }
 
     public void Dispose()
     {
         obsManager.RecordingStateChanged -= ObsRecordingStateChanged;
+        obsManager.SceneNamesUpdated -= ObsSceneNamesUpdated;
         if (recordingCurrentLevel) StopRecordingImmediately();
     }
 
@@ -69,25 +73,26 @@ internal class RecordingManager : IInitializable, IDisposable
             return;
         }
         
-        var availableScenes = GetAvailableScenes();
-        var startScene = availableScenes.Contains(pluginConfig.StartSceneName) ? pluginConfig.StartSceneName : string.Empty;
-        var gameScene = availableScenes.Contains(pluginConfig.GameSceneName) ? pluginConfig.GameSceneName : string.Empty;
         try
         {
-            if (!ValidateScenes(availableScenes, startScene, gameScene))
+            if (!IsValidSceneTransition(pluginConfig.StartSceneName, pluginConfig.GameSceneName))
             {
-                if (!string.IsNullOrEmpty(gameScene))
-                    obsManager.Obs.SetCurrentProgramScene(gameScene);
+                if (!string.IsNullOrEmpty(pluginConfig.GameSceneName)) 
+                    obsManager.Obs.SetCurrentProgramScene(pluginConfig.GameSceneName);
                 obsManager.Obs.StartRecord();
-                return;
             }
-
-            Plugin.Log.Info($"Setting intro OBS scene to '{startScene}'");
-            obsManager.Obs.SetCurrentProgramScene(startScene);
-            obsManager.Obs.StartRecord();
-            await Task.Delay(TimeSpan.FromSeconds(pluginConfig.StartSceneDuration));
-            Plugin.Log.Info($"Setting game OBS scene to '{gameScene}'");
-            obsManager.Obs.SetCurrentProgramScene(gameScene);
+            else
+            {
+                Plugin.Log.Info($"Setting intro OBS scene to '{pluginConfig.StartSceneName}'");
+                obsManager.Obs.SetCurrentProgramScene(pluginConfig.StartSceneName);
+                obsManager.Obs.StartRecord();
+                if (pluginConfig.StartSceneDuration > 0)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(pluginConfig.StartSceneDuration));
+                }
+                Plugin.Log.Info($"Setting game OBS scene to '{pluginConfig.GameSceneName}'");
+                obsManager.Obs.SetCurrentProgramScene(pluginConfig.GameSceneName);
+            }
         }
         catch (Exception ex)
         {
@@ -119,14 +124,19 @@ internal class RecordingManager : IInitializable, IDisposable
                 await Task.Delay(TimeSpan.FromSeconds(pluginConfig.RecordingStopDelay));
             }
             
-            var availableScenes = GetAvailableScenes();
-            var endScene = availableScenes.Contains(pluginConfig.EndSceneName) ? pluginConfig.EndSceneName : string.Empty;
-            var gameScene = availableScenes.Contains(pluginConfig.GameSceneName) ? pluginConfig.GameSceneName : string.Empty;
-            if (ValidateScenes(availableScenes, endScene, gameScene))
+            if (IsValidSceneTransition(pluginConfig.EndSceneName, pluginConfig.GameSceneName))
             {
-                Plugin.Log.Info($"Setting outro OBS scene to '{endScene}' for {pluginConfig.EndSceneDuration:F1}s");
-                obsManager.Obs.SetCurrentProgramScene(endScene);
-                await Task.Delay(TimeSpan.FromSeconds(pluginConfig.EndSceneDuration));
+                if (pluginConfig.EndSceneDelay > 0)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(pluginConfig.EndSceneDelay));
+                }
+                
+                Plugin.Log.Info($"Setting outro OBS scene to '{pluginConfig.EndSceneName}' for {pluginConfig.EndSceneDuration:F1}s");
+                obsManager.Obs.SetCurrentProgramScene(pluginConfig.GameSceneName);
+                if (pluginConfig.EndSceneDuration > 0)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(pluginConfig.EndSceneDuration));
+                }
             }
             
             newRecordingFilename = fileName;
@@ -239,8 +249,13 @@ internal class RecordingManager : IInitializable, IDisposable
         }
     }
 
-    private static bool ValidateScenes(IEnumerable<string> availableScenes, params string[] scenes)
+    private void ObsSceneNamesUpdated(IEnumerable<string> names)
     {
-        return scenes.Length != 0 && scenes.All(s => !string.IsNullOrEmpty(s) && availableScenes.Contains(s));
+        sceneNames = names.ToHashSet();
+    }
+
+    private bool IsValidSceneTransition(params string[] scenes)
+    {
+        return scenes.Length != 0 && scenes.All(s => !string.IsNullOrEmpty(s) && sceneNames.Contains(s));
     }
 }

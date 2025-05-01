@@ -54,6 +54,12 @@ internal class SceneSettingsView
         set => pluginConfig.EndSceneName = value;
     }
 
+    public float EndSceneDelay
+    {
+        get => pluginConfig.EndSceneDelay;
+        set => pluginConfig.EndSceneDelay = value;
+    }
+
     public string FloatToSeconds(float val) => $"{Math.Round(val, 1)}s";
     
     public void UpdateSceneOptions(IEnumerable<string> newOptions)
