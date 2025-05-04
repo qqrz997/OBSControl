@@ -9,12 +9,12 @@ namespace OBSControl.Managers;
 
 internal class StreamingManager : IInitializable, IDisposable
 {
-    private readonly ObsManager obsManager;
+    private readonly EventManager eventManager;
     private readonly IOBSWebsocket obsWebsocket;
 
-    public StreamingManager(ObsManager obsManager, IOBSWebsocket obsWebsocket)
+    public StreamingManager(EventManager eventManager, IOBSWebsocket obsWebsocket)
     {
-        this.obsManager = obsManager;
+        this.eventManager = eventManager;
         this.obsWebsocket = obsWebsocket;
     }
     
@@ -24,15 +24,15 @@ internal class StreamingManager : IInitializable, IDisposable
 
     public void Initialize()
     {
-        obsManager.StreamingStateChanged += ObsStreamingStateChanged;
+        eventManager.StreamingStateChanged += StreamingStateChanged;
     }
 
     public void Dispose()
     {
-        obsManager.StreamingStateChanged -= ObsStreamingStateChanged;
+        eventManager.StreamingStateChanged -= StreamingStateChanged;
     }
     
-    private void ObsStreamingStateChanged(OutputState outputState)
+    private void StreamingStateChanged(OutputState outputState)
     {
         switch (outputState)
         {

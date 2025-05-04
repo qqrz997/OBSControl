@@ -20,10 +20,14 @@ internal class AppInstaller : Installer
         
         Container.Bind<IOBSWebsocket>().FromInstance(new OBSWebsocket());
         
+        // OBS Managers
+        Container.BindInterfacesAndSelfTo<ConnectionManager>().AsSingle();
+        Container.BindInterfacesAndSelfTo<EventManager>().AsSingle();
+        Container.BindInterfacesAndSelfTo<SceneManager>().AsSingle();
         Container.BindInterfacesAndSelfTo<RecordingManager>().AsSingle();
         Container.BindInterfacesAndSelfTo<StreamingManager>().AsSingle();
-        Container.BindInterfacesAndSelfTo<ObsManager>().AsSingle();
 
+        // Patches
         Container.BindInterfacesTo<HarmonyPatchManager>().AsSingle();
         Container.BindInterfacesTo<StartLevelButtonHook>().AsSingle();
     }

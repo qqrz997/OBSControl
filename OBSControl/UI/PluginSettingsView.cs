@@ -9,18 +9,21 @@ namespace OBSControl.UI;
 
 internal class PluginSettingsView : IInitializable, IDisposable
 {
-    private readonly ObsManager obsManager;
     private readonly PluginConfig pluginConfig;
-    
+    private readonly EventManager eventManager;
+    private readonly SceneManager sceneManager;
+
     public PluginSettingsView(
-        ObsManager obsManager,
         PluginConfig pluginConfig,
+        EventManager eventManager,
+        SceneManager sceneManager,
         AudioDeviceSettingsView audioDeviceSettingsView,
         SceneSettingsView sceneSettingsView,
         RecordingSettingsView recordingSettingsView)
     {
-        this.obsManager = obsManager;
         this.pluginConfig = pluginConfig;
+        this.eventManager = eventManager;
+        this.sceneManager = sceneManager;
 
         AudioDeviceSettingsView = audioDeviceSettingsView;
         SceneSettingsView = sceneSettingsView;
@@ -38,18 +41,18 @@ internal class PluginSettingsView : IInitializable, IDisposable
 
     public void Initialize()
     {
-        obsManager.SceneNamesUpdated += UpdateSceneOptions;
+        eventManager.SceneNamesUpdated += UpdateSceneOptions;
     }
 
     public void Dispose()
     {
-        obsManager.SceneNamesUpdated -= UpdateSceneOptions;
+        eventManager.SceneNamesUpdated -= UpdateSceneOptions;
     }
 
     [UIAction("#post-parse")]
     public void PostParse()
     {
-        UpdateSceneOptions(obsManager.SceneNames);
+        UpdateSceneOptions(sceneManager.SceneNames);
     }
 
     public bool Enabled

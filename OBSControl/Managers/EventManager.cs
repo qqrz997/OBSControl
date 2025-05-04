@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using OBSControl.Utilities;
 using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Communication;
@@ -11,18 +10,17 @@ using Zenject;
 
 namespace OBSControl.Managers;
 
-internal class ObsManager : IInitializable, IDisposable
+internal class EventManager : IInitializable, IDisposable
 {
     private readonly PluginConfig pluginConfig;
     private readonly IOBSWebsocket obsWebsocket;
-    private readonly List<string> sceneNames = [];
     
-    public ObsManager(PluginConfig pluginConfig, IOBSWebsocket obsWebsocket)
+    public EventManager(PluginConfig pluginConfig, IOBSWebsocket obsWebsocket)
     {
         this.pluginConfig = pluginConfig;
         this.obsWebsocket = obsWebsocket;
     }
-
+    
     public event Action<bool>? ConnectionStateChanged; 
     public event Action<string>? SceneChanged; 
     public event Action<IEnumerable<string>>? SceneNamesUpdated; 
@@ -30,7 +28,6 @@ internal class ObsManager : IInitializable, IDisposable
     public event Action<OutputState>? StreamingStateChanged;
 
     public string CurrentScene { get; private set; } = "Unknown";
-    public IEnumerable<string> SceneNames => sceneNames;
     public OutputState RecordingState { get; private set; } = OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED;
     public OutputState StreamingState { get; private set; } = OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED;
 
@@ -42,8 +39,6 @@ internal class ObsManager : IInitializable, IDisposable
         obsWebsocket.StreamStateChanged += ObsStreamStateChanged;
         obsWebsocket.SceneListChanged += ObsSceneListChanged;
         obsWebsocket.CurrentProgramSceneChanged += ObsCurrentProgramSceneChanged;
-        
-        Task.Run(() => RepeatTryConnect(3, 5000));
     }
 
     public void Dispose()
@@ -54,86 +49,13 @@ internal class ObsManager : IInitializable, IDisposable
         obsWebsocket.StreamStateChanged -= ObsStreamStateChanged;
         obsWebsocket.SceneListChanged -= ObsSceneListChanged;
         obsWebsocket.CurrentProgramSceneChanged -= ObsCurrentProgramSceneChanged;
-        
-        if (obsWebsocket.IsConnected)
-        {
-            obsWebsocket.Disconnect();
-        }
-    }
-
-    public void ToggleConnect()
-    {
-        if (obsWebsocket.IsConnected)
-        {
-            obsWebsocket.Disconnect();
-        }
-        else
-        {
-            TryConnect();
-        }
-    }
-
-    private void TryConnect()
-    {
-        if (obsWebsocket.IsConnected)
-        {
-            Plugin.Log.Info("TryConnect: OBS is already connected.");
-            return;
-        }
-        
-        if(!pluginConfig.AddressIsValid())
-        {
-            Plugin.Log.Error("Server address or port is invalid.");
-            return;
-        }
-
-        var serverAddress = pluginConfig.GetFullAddress();
-        try
-        {
-            obsWebsocket.ConnectAsync(serverAddress, pluginConfig.ServerPassword);
-            Plugin.Log.Info($"Finished attempting to connect to {serverAddress}");
-        }
-        catch (AuthFailureException)
-        {
-            Plugin.Log.Info($"Authentication failed connecting to server {serverAddress}.");
-        }
-        catch (Exception ex)
-        {
-            Plugin.Log.Warn($"Failed to connect to server {serverAddress}: {ex.Message}.");
-            Plugin.Log.Debug(ex);
-        }
-    }
-
-    private async Task RepeatTryConnect(int attempts, int intervalMilliseconds)
-    {
-        try
-        {
-            if (!pluginConfig.AddressIsValid())
-            {
-                Plugin.Log.Error("Server address or port is invalid. Unable to connect to OBS.");
-                return;
-            }
-            
-            Plugin.Log.Info("Repeatedly attempting to connect to OBS websocket server.");
-
-            while (attempts-- > 0 && !obsWebsocket.IsConnected)
-            {
-                TryConnect();
-                await Task.Delay(intervalMilliseconds);
-            }
-        }
-        catch (Exception ex)
-        {
-            Plugin.Log.Error($"Error in RepeatTryConnect: {ex.Message}");
-            Plugin.Log.Debug(ex);
-        }
     }
 
     private void ObsConnected(object sender, EventArgs e)
     {
         Plugin.Log.Info($"OBS Connected to {pluginConfig.GetFullAddress()}.");
         ConnectionStateChanged?.Invoke(true);
-        TryFetchSceneList();
+        UpdateSceneList();
     }
     
     private void ObsDisconnected(object sender, ObsDisconnectionInfo disconnectionInfo)
@@ -150,7 +72,7 @@ internal class ObsManager : IInitializable, IDisposable
 
     private void ObsSceneListChanged(object sender, SceneListChangedEventArgs e)
     {
-        TryFetchSceneList();
+        UpdateSceneList();
     }
 
     private void ObsRecordStateChanged(object sender, RecordStateChangedEventArgs e)
@@ -167,7 +89,7 @@ internal class ObsManager : IInitializable, IDisposable
         StreamingStateChanged?.Invoke(e.OutputState.State);
     }
 
-    private void TryFetchSceneList()
+    private void UpdateSceneList()
     {
         if (!obsWebsocket.IsConnected)
         {
@@ -176,8 +98,7 @@ internal class ObsManager : IInitializable, IDisposable
         
         try
         {
-            sceneNames.Clear();
-            sceneNames.AddRange(obsWebsocket.GetSceneList().Scenes.Select(s => s.Name));
+            var sceneNames = obsWebsocket.GetSceneList().Scenes.Select(s => s.Name);
             SceneNamesUpdated?.Invoke(sceneNames);
             
             CurrentScene = obsWebsocket.GetCurrentProgramScene();

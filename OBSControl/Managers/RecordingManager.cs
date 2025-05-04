@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,16 +13,19 @@ namespace OBSControl.Managers;
 internal class RecordingManager : IInitializable, IDisposable
 {
     private readonly PluginConfig pluginConfig;
-    private readonly ObsManager obsManager;
+    private readonly EventManager eventManager;
+    private readonly SceneManager sceneManager;
     private readonly IOBSWebsocket obsWebsocket;
 
     public RecordingManager(
         PluginConfig pluginConfig,
-        ObsManager obsManager,
+        EventManager eventManager,
+        SceneManager sceneManager,
         IOBSWebsocket obsWebsocket)
     {
         this.pluginConfig = pluginConfig;
-        this.obsManager = obsManager;
+        this.eventManager = eventManager;
+        this.sceneManager = sceneManager;
         this.obsWebsocket = obsWebsocket;
     }
     
@@ -31,19 +33,15 @@ internal class RecordingManager : IInitializable, IDisposable
     private bool switchToGameSceneOnRecordEnd;
     private string? newRecordingFilename;
     private string? lastRecordingFilename;
-    private HashSet<string> sceneNames = [];
 
     public void Initialize()
     {
-        obsManager.RecordingStateChanged += ObsRecordingStateChanged;
-        obsManager.SceneNamesUpdated += ObsSceneNamesUpdated;
-        ObsSceneNamesUpdated(obsManager.SceneNames);
+        eventManager.RecordingStateChanged += RecordingStateChanged;
     }
 
     public void Dispose()
     {
-        obsManager.RecordingStateChanged -= ObsRecordingStateChanged;
-        obsManager.SceneNamesUpdated -= ObsSceneNamesUpdated;
+        eventManager.RecordingStateChanged -= RecordingStateChanged;
         if (recordingCurrentLevel) StopRecordingImmediately();
     }
 
@@ -103,20 +101,6 @@ internal class RecordingManager : IInitializable, IDisposable
             Plugin.Log.Debug(ex);
         }
     }
-
-    private string[] GetAvailableScenes()
-    {
-        try
-        {
-            return !obsWebsocket.IsConnected ? [] : obsWebsocket.GetSceneList().Scenes.Select(s => s.Name).ToArray();
-        }
-        catch (Exception ex)
-        {
-            Plugin.Log.Error($"Error validating scenes: {ex.Message}");
-            Plugin.Log.Debug(ex);
-            return [];
-        }
-    }
     
     private async Task StopRecording(string fileName)
     {
@@ -172,7 +156,7 @@ internal class RecordingManager : IInitializable, IDisposable
         recordingCurrentLevel = false;
     }
 
-    private void ObsRecordingStateChanged(OutputState type)
+    private void RecordingStateChanged(OutputState type)
     {
         Plugin.Log.Debug($"Recording State Changed: {type}");
         switch (type)
@@ -262,13 +246,8 @@ internal class RecordingManager : IInitializable, IDisposable
         }
     }
 
-    private void ObsSceneNamesUpdated(IEnumerable<string> names)
-    {
-        sceneNames = names.ToHashSet();
-    }
-
     private bool IsValidSceneTransition(params string[] scenes)
     {
-        return scenes.Length != 0 && scenes.All(s => !string.IsNullOrEmpty(s) && sceneNames.Contains(s));
+        return scenes.Length != 0 && scenes.All(s => !string.IsNullOrEmpty(s) && sceneManager.Contains(s));
     }
 }

@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using BeatSaberMarkupLanguage.Attributes;
 using OBSControl.Managers;
 using OBSControl.UI.Formatters;
 using OBSWebsocketDotNet;
@@ -13,17 +12,17 @@ namespace OBSControl.UI;
 
 internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyPropertyChanged
 {
-    private readonly ObsManager obsManager;
+    private readonly EventManager eventManager;
     private readonly IOBSWebsocket obsWebsocket;
     private readonly StreamingManager streamingManager;
     
     public ControlScreenStreamingTab(
-        ObsManager obsManager,
+        EventManager eventManager,
         IOBSWebsocket obsWebsocket,
         StreamingManager streamingManager,
         BoolFormatter boolFormatter, TimeFormatter timeFormatter)
     {
-        this.obsManager = obsManager;
+        this.eventManager = eventManager;
         this.obsWebsocket = obsWebsocket;
         this.streamingManager = streamingManager;
         
@@ -33,37 +32,32 @@ internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyP
 
     public void Initialize()
     {
-        obsManager.StreamingStateChanged += ObsStreamingStateChanged;
-        obsManager.SceneChanged += ObsSceneChanged;
-        streamingManager.StreamStatusChanged += ObsStreamingStatusChanged;
+        eventManager.StreamingStateChanged += StreamingStateChanged;
+        eventManager.SceneChanged += SceneChanged;
+        streamingManager.StreamStatusChanged += StreamStatusChanged;
     }
 
-    private void ObsStreamingStatusChanged(OutputStatus outputStatus)
+    public void Dispose()
+    {
+        eventManager.StreamingStateChanged -= StreamingStateChanged;
+        eventManager.SceneChanged -= SceneChanged;
+        streamingManager.StreamStatusChanged -= StreamStatusChanged;
+    }
+
+    private void StreamStatusChanged(OutputStatus outputStatus)
     {
         StreamTime = (int)(outputStatus.Duration / 1000);
     }
 
-    private void ObsSceneChanged(string sceneName) => CurrentScene = sceneName;
+    private void SceneChanged(string sceneName) => CurrentScene = sceneName;
 
-    private void ObsStreamingStateChanged(OutputState outputState) => IsStreaming = outputState switch
+    private void StreamingStateChanged(OutputState outputState) => IsStreaming = outputState switch
     {
         OutputState.OBS_WEBSOCKET_OUTPUT_STARTED => true,
         OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED => false,
         _ => isStreaming
     };
 
-    public void Dispose()
-    {
-        obsManager.StreamingStateChanged -= ObsStreamingStateChanged;
-        obsManager.SceneChanged -= ObsSceneChanged;
-        streamingManager.StreamStatusChanged -= ObsStreamingStatusChanged;
-    }
-
-    [UIAction("#post-parse")]
-    public void PostParse()
-    {
-    }
-    
     public BoolFormatter BoolFormatter { get; }
     public TimeFormatter TimeFormatter { get; }
 

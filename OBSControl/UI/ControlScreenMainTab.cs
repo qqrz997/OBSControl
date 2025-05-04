@@ -13,12 +13,18 @@ namespace OBSControl.UI;
 
 internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyPropertyChanged
 {
-    private readonly ObsManager obsManager;
+    private readonly EventManager eventManager;
+    private readonly ConnectionManager connectionManager;
     private readonly IOBSWebsocket obsWebsocket;
     
-    public ControlScreenMainTab(ObsManager obsManager, IOBSWebsocket obsWebsocket, BoolFormatter boolFormatter)
+    public ControlScreenMainTab(
+        EventManager eventManager,
+        ConnectionManager connectionManager,
+        IOBSWebsocket obsWebsocket,
+        BoolFormatter boolFormatter)
     {
-        this.obsManager = obsManager;
+        this.eventManager = eventManager;
+        this.connectionManager = connectionManager;
         this.obsWebsocket = obsWebsocket;
         
         BoolFormatter = boolFormatter;
@@ -26,30 +32,27 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
 
     public void Initialize()
     {
-        obsManager.ConnectionStateChanged += ObsConnectionStateChanged;
-        // obsManager.HeartBeatChanged += ObsHeartBeatChanged;
-        obsManager.SceneChanged += ObsSceneChanged;
-        obsManager.RecordingStateChanged += ObsRecordingStateChanged;
-        obsManager.StreamingStateChanged += ObsStreamingStateChanged;
+        eventManager.ConnectionStateChanged += ConnectionStateChanged;
+        eventManager.SceneChanged += SceneChanged;
+        eventManager.RecordingStateChanged += RecordingStateChanged;
+        eventManager.StreamingStateChanged += StreamingStateChanged;
     }
 
     public void Dispose()
     {
-        obsManager.ConnectionStateChanged -= ObsConnectionStateChanged;
-        // obsManager.HeartBeatChanged -= ObsHeartBeatChanged;
-        obsManager.SceneChanged -= ObsSceneChanged;
-        obsManager.RecordingStateChanged -= ObsRecordingStateChanged;
-        obsManager.StreamingStateChanged -= ObsStreamingStateChanged;
+        eventManager.ConnectionStateChanged -= ConnectionStateChanged;
+        eventManager.SceneChanged -= SceneChanged;
+        eventManager.RecordingStateChanged -= RecordingStateChanged;
+        eventManager.StreamingStateChanged -= StreamingStateChanged;
     }
 
     [UIAction("#post-parse")]
     public void PostParse()
     {
-        ObsConnectionStateChanged(obsWebsocket.IsConnected);
-        // if (obsManager.HeartBeat != null) ObsHeartBeatChanged(obsManager.HeartBeat);
-        ObsSceneChanged(obsManager.CurrentScene);
-        ObsRecordingStateChanged(obsManager.RecordingState);
-        ObsStreamingStateChanged(obsManager.StreamingState);
+        ConnectionStateChanged(obsWebsocket.IsConnected);
+        SceneChanged(eventManager.CurrentScene);
+        RecordingStateChanged(eventManager.RecordingState);
+        StreamingStateChanged(eventManager.StreamingState);
     }
 
     public BoolFormatter BoolFormatter { get; }
@@ -149,7 +152,7 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
         try
         {
             ConnectButtonInteractable = false;
-            obsManager.ToggleConnect();
+            connectionManager.ToggleConnect();
         }
         catch (Exception ex)
         {
@@ -164,18 +167,18 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
         }
     }
 
-    private void ObsConnectionStateChanged(bool connected) => IsConnected = connected;
+    private void ConnectionStateChanged(bool connected) => IsConnected = connected;
     
-    private void ObsSceneChanged(string sceneName) => CurrentScene = sceneName;
+    private void SceneChanged(string sceneName) => CurrentScene = sceneName;
     
-    private void ObsStreamingStateChanged(OutputState outputState) => IsStreaming = outputState switch
+    private void StreamingStateChanged(OutputState outputState) => IsStreaming = outputState switch
     {
         OutputState.OBS_WEBSOCKET_OUTPUT_STARTED => true,
         OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED => false,
         _ => IsStreaming
     };
 
-    private void ObsRecordingStateChanged(OutputState outputState) => IsRecording = outputState switch
+    private void RecordingStateChanged(OutputState outputState) => IsRecording = outputState switch
     {
         OutputState.OBS_WEBSOCKET_OUTPUT_STARTED => true,
         OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED => false,
