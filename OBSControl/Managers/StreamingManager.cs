@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Types;
 using Zenject;
 
@@ -9,10 +10,12 @@ namespace OBSControl.Managers;
 internal class StreamingManager : IInitializable, IDisposable
 {
     private readonly ObsManager obsManager;
+    private readonly IOBSWebsocket obsWebsocket;
 
-    public StreamingManager(ObsManager obsManager)
+    public StreamingManager(ObsManager obsManager, IOBSWebsocket obsWebsocket)
     {
         this.obsManager = obsManager;
+        this.obsWebsocket = obsWebsocket;
     }
     
     public event Action<OutputStatus>? StreamStatusChanged;
@@ -68,7 +71,7 @@ internal class StreamingManager : IInitializable, IDisposable
         {
             while (!token.IsCancellationRequested)
             {
-                var status = obsManager.Obs.GetStreamStatus();
+                var status = obsWebsocket.GetStreamStatus();
                 StreamStatusChanged?.Invoke(status);
                 await Task.Delay(2000, token);
             }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using OBSControl.Managers;
+using OBSWebsocketDotNet;
 using SiraUtil.Affinity;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,17 +13,20 @@ internal class StartLevelButtonHook : IAffinity
     private readonly PluginConfig pluginConfig;
     private readonly ICoroutineStarter coroutineStarter;
     private readonly ObsManager obsManager;
+    private readonly IOBSWebsocket obsWebsocket;
     private readonly RecordingManager recordingManager;
 
     public StartLevelButtonHook(
         PluginConfig pluginConfig,
         ICoroutineStarter coroutineStarter,
         ObsManager obsManager,
+        IOBSWebsocket obsWebsocket,
         RecordingManager recordingManager)
     {
         this.pluginConfig = pluginConfig;
         this.coroutineStarter = coroutineStarter;
         this.obsManager = obsManager;
+        this.obsWebsocket = obsWebsocket;
         this.recordingManager = recordingManager;
     }
     
@@ -42,7 +46,7 @@ internal class StartLevelButtonHook : IAffinity
             return true;
         }
 
-        if (!obsManager.Obs.IsConnected)
+        if (!obsWebsocket.IsConnected)
         {
             Plugin.Log.Warn("Not connected to OBS, skipping StartLevel override.");
             return true;

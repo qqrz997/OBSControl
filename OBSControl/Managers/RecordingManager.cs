@@ -15,13 +15,16 @@ internal class RecordingManager : IInitializable, IDisposable
 {
     private readonly PluginConfig pluginConfig;
     private readonly ObsManager obsManager;
+    private readonly IOBSWebsocket obsWebsocket;
 
     public RecordingManager(
         PluginConfig pluginConfig,
-        ObsManager obsManager)
+        ObsManager obsManager,
+        IOBSWebsocket obsWebsocket)
     {
         this.pluginConfig = pluginConfig;
         this.obsManager = obsManager;
+        this.obsWebsocket = obsWebsocket;
     }
     
     private bool recordingCurrentLevel;
@@ -68,7 +71,7 @@ internal class RecordingManager : IInitializable, IDisposable
     
     private async Task TryStartRecordingAsync()
     {
-        if (obsManager.Obs.GetRecordStatus().IsRecording)
+        if (obsWebsocket.GetRecordStatus().IsRecording)
         {
             return;
         }
@@ -78,20 +81,20 @@ internal class RecordingManager : IInitializable, IDisposable
             if (!IsValidSceneTransition(pluginConfig.StartSceneName, pluginConfig.GameSceneName))
             {
                 if (!string.IsNullOrEmpty(pluginConfig.GameSceneName)) 
-                    obsManager.Obs.SetCurrentProgramScene(pluginConfig.GameSceneName);
-                obsManager.Obs.StartRecord();
+                    obsWebsocket.SetCurrentProgramScene(pluginConfig.GameSceneName);
+                obsWebsocket.StartRecord();
             }
             else
             {
                 Plugin.Log.Info($"Setting intro OBS scene to '{pluginConfig.StartSceneName}'");
-                obsManager.Obs.SetCurrentProgramScene(pluginConfig.StartSceneName);
-                obsManager.Obs.StartRecord();
+                obsWebsocket.SetCurrentProgramScene(pluginConfig.StartSceneName);
+                obsWebsocket.StartRecord();
                 if (pluginConfig.StartSceneDuration > 0)
                 {
                     await Task.Delay(TimeSpan.FromSeconds(pluginConfig.StartSceneDuration));
                 }
                 Plugin.Log.Info($"Setting game OBS scene to '{pluginConfig.GameSceneName}'");
-                obsManager.Obs.SetCurrentProgramScene(pluginConfig.GameSceneName);
+                obsWebsocket.SetCurrentProgramScene(pluginConfig.GameSceneName);
             }
         }
         catch (Exception ex)
@@ -105,7 +108,7 @@ internal class RecordingManager : IInitializable, IDisposable
     {
         try
         {
-            return obsManager.Obs.GetSceneList().Scenes.Select(s => s.Name).ToArray();
+            return obsWebsocket.GetSceneList().Scenes.Select(s => s.Name).ToArray();
         }
         catch (Exception ex)
         {
@@ -132,7 +135,7 @@ internal class RecordingManager : IInitializable, IDisposable
                 }
                 
                 Plugin.Log.Info($"Setting outro OBS scene to '{pluginConfig.EndSceneName}' for {pluginConfig.EndSceneDuration:F1}s");
-                obsManager.Obs.SetCurrentProgramScene(pluginConfig.GameSceneName);
+                obsWebsocket.SetCurrentProgramScene(pluginConfig.GameSceneName);
                 if (pluginConfig.EndSceneDuration > 0)
                 {
                     await Task.Delay(TimeSpan.FromSeconds(pluginConfig.EndSceneDuration));
@@ -141,7 +144,7 @@ internal class RecordingManager : IInitializable, IDisposable
             
             newRecordingFilename = fileName;
             switchToGameSceneOnRecordEnd = true;
-            lastRecordingFilename = obsManager.Obs.StopRecord();
+            lastRecordingFilename = obsWebsocket.StopRecord();
             recordingCurrentLevel = false;
         }
         catch (ErrorResponseException ex)
@@ -160,7 +163,7 @@ internal class RecordingManager : IInitializable, IDisposable
     private void StopRecordingImmediately()
     {
         switchToGameSceneOnRecordEnd = true;
-        obsManager.Obs.StopRecord();
+        obsWebsocket.StopRecord();
         recordingCurrentLevel = false;
     }
 
@@ -224,7 +227,7 @@ internal class RecordingManager : IInitializable, IDisposable
                 return;
             }
         
-            var recordDirectory = obsManager.Obs.GetRecordDirectory();
+            var recordDirectory = obsWebsocket.GetRecordDirectory();
             if (string.IsNullOrEmpty(recordDirectory))
             {
                 Plugin.Log.Warn("Unable to determine current recording folder, unable to rename.");

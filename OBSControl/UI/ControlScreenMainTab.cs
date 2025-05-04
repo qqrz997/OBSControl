@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using BeatSaberMarkupLanguage.Attributes;
 using OBSControl.Managers;
 using OBSControl.UI.Formatters;
+using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Types;
 using Zenject;
 
@@ -13,10 +14,12 @@ namespace OBSControl.UI;
 internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyPropertyChanged
 {
     private readonly ObsManager obsManager;
+    private readonly IOBSWebsocket obsWebsocket;
     
-    public ControlScreenMainTab(ObsManager obsManager, BoolFormatter boolFormatter)
+    public ControlScreenMainTab(ObsManager obsManager, IOBSWebsocket obsWebsocket, BoolFormatter boolFormatter)
     {
         this.obsManager = obsManager;
+        this.obsWebsocket = obsWebsocket;
         
         BoolFormatter = boolFormatter;
     }
@@ -42,7 +45,7 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
     [UIAction("#post-parse")]
     public void PostParse()
     {
-        ObsConnectionStateChanged(obsManager.Obs.IsConnected);
+        ObsConnectionStateChanged(obsWebsocket.IsConnected);
         // if (obsManager.HeartBeat != null) ObsHeartBeatChanged(obsManager.HeartBeat);
         ObsSceneChanged(obsManager.CurrentScene);
         ObsRecordingStateChanged(obsManager.RecordingState);

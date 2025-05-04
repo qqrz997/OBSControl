@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using BeatSaberMarkupLanguage.Attributes;
 using OBSControl.Managers;
 using OBSControl.UI.Formatters;
+using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Types;
 using Zenject;
 
@@ -13,14 +14,17 @@ namespace OBSControl.UI;
 internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyPropertyChanged
 {
     private readonly ObsManager obsManager;
+    private readonly IOBSWebsocket obsWebsocket;
     private readonly StreamingManager streamingManager;
     
     public ControlScreenStreamingTab(
         ObsManager obsManager,
+        IOBSWebsocket obsWebsocket,
         StreamingManager streamingManager,
         BoolFormatter boolFormatter, TimeFormatter timeFormatter)
     {
         this.obsManager = obsManager;
+        this.obsWebsocket = obsWebsocket;
         this.streamingManager = streamingManager;
         
         BoolFormatter = boolFormatter;
@@ -179,7 +183,7 @@ internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyP
         try
         {
             StreamButtonInteractable = false;
-            obsManager.Obs.ToggleStream();
+            obsWebsocket.ToggleStream();
             await Task.Delay(2000);
         }
         catch (Exception ex)
