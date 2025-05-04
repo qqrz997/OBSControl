@@ -71,7 +71,7 @@ internal class RecordingManager : IInitializable, IDisposable
     
     private async Task TryStartRecordingAsync()
     {
-        if (obsWebsocket.GetRecordStatus().IsRecording)
+        if (!obsWebsocket.IsConnected || obsWebsocket.GetRecordStatus().IsRecording)
         {
             return;
         }
@@ -108,7 +108,7 @@ internal class RecordingManager : IInitializable, IDisposable
     {
         try
         {
-            return obsWebsocket.GetSceneList().Scenes.Select(s => s.Name).ToArray();
+            return !obsWebsocket.IsConnected ? [] : obsWebsocket.GetSceneList().Scenes.Select(s => s.Name).ToArray();
         }
         catch (Exception ex)
         {
@@ -120,6 +120,11 @@ internal class RecordingManager : IInitializable, IDisposable
     
     private async Task StopRecording(string fileName)
     {
+        if (!obsWebsocket.IsConnected)
+        {
+            return;
+        }
+        
         try
         { 
             if (pluginConfig.RecordingStopDelay > 0)
@@ -163,7 +168,7 @@ internal class RecordingManager : IInitializable, IDisposable
     private void StopRecordingImmediately()
     {
         switchToGameSceneOnRecordEnd = true;
-        obsWebsocket.StopRecord();
+        if (obsWebsocket.IsConnected) obsWebsocket.StopRecord();
         recordingCurrentLevel = false;
     }
 
@@ -206,6 +211,11 @@ internal class RecordingManager : IInitializable, IDisposable
 
     private void RenameLastRecording(string newNameWithoutExtension)
     {
+        if (!obsWebsocket.IsConnected)
+        {
+            return;
+        }
+        
         try
         {
             if (string.IsNullOrEmpty(newNameWithoutExtension))

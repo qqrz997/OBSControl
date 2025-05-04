@@ -12,20 +12,17 @@ internal class StartLevelButtonHook : IAffinity
 {
     private readonly PluginConfig pluginConfig;
     private readonly ICoroutineStarter coroutineStarter;
-    private readonly ObsManager obsManager;
     private readonly IOBSWebsocket obsWebsocket;
     private readonly RecordingManager recordingManager;
 
     public StartLevelButtonHook(
         PluginConfig pluginConfig,
         ICoroutineStarter coroutineStarter,
-        ObsManager obsManager,
         IOBSWebsocket obsWebsocket,
         RecordingManager recordingManager)
     {
         this.pluginConfig = pluginConfig;
         this.coroutineStarter = coroutineStarter;
-        this.obsManager = obsManager;
         this.obsWebsocket = obsWebsocket;
         this.recordingManager = recordingManager;
     }

@@ -69,7 +69,7 @@ internal class StreamingManager : IInitializable, IDisposable
     {
         try
         {
-            while (!token.IsCancellationRequested)
+            while (!token.IsCancellationRequested && obsWebsocket.IsConnected)
             {
                 var status = obsWebsocket.GetStreamStatus();
                 StreamStatusChanged?.Invoke(status);

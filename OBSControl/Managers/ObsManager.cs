@@ -169,6 +169,11 @@ internal class ObsManager : IInitializable, IDisposable
 
     private void TryFetchSceneList()
     {
+        if (!obsWebsocket.IsConnected)
+        {
+            return;
+        }
+        
         try
         {
             sceneNames.Clear();

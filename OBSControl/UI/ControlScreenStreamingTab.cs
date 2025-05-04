@@ -35,7 +35,6 @@ internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyP
     {
         obsManager.StreamingStateChanged += ObsStreamingStateChanged;
         obsManager.SceneChanged += ObsSceneChanged;
-        // obsManager.HeartBeatChanged += ObsHeartBeatChanged;
         streamingManager.StreamStatusChanged += ObsStreamingStatusChanged;
     }
 
@@ -43,11 +42,6 @@ internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyP
     {
         StreamTime = (int)(outputStatus.Duration / 1000);
     }
-
-    // private void ObsHeartBeatChanged(HeartBeatEventArgs e)
-    // {
-    //     
-    // }
 
     private void ObsSceneChanged(string sceneName) => CurrentScene = sceneName;
 
@@ -62,7 +56,6 @@ internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyP
     {
         obsManager.StreamingStateChanged -= ObsStreamingStateChanged;
         obsManager.SceneChanged -= ObsSceneChanged;
-        // obsManager.HeartBeatChanged -= ObsHeartBeatChanged;
         streamingManager.StreamStatusChanged -= ObsStreamingStatusChanged;
     }
 
@@ -182,6 +175,7 @@ internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyP
     {
         try
         {
+            if (!obsWebsocket.IsConnected) return;
             StreamButtonInteractable = false;
             obsWebsocket.ToggleStream();
             await Task.Delay(2000);
