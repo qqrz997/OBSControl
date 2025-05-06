@@ -79,7 +79,7 @@
                                 child-control-width='false' child-expand-width='false'>
                         <text text='Render Missed Frames'  align='MidlineLeft' size-delta-x='32'/>
                         <text data='RenderMissedFrames' data-format='#,0 Frames' align='MidlineLeft' size-delta-x='25'/>
-                        <clickable-image on-click='ResetRenderMissedFrames' src='#AvatarHandsIcon' 
+                        <clickable-image on-click='ResetRenderMissedFrames' src='#ResetIcon' 
                                          pref-height='7' preferred-width='10' preserve-aspect='true'/>
                     </horizontal>
                     

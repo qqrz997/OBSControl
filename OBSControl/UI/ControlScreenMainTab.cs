@@ -167,6 +167,11 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
         }
     }
 
+    public void ResetRenderMissedFrames()
+    {
+        RenderMissedFrames = 0;
+    }
+
     private void ConnectionStateChanged(bool connected) => IsConnected = connected;
     
     private void SceneChanged(string sceneName) => CurrentScene = sceneName;
