@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using OBSControl.Models;
 using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Types;
 using Zenject;
@@ -18,9 +19,10 @@ internal class StreamingManager : IInitializable, IDisposable
         this.obsWebsocket = obsWebsocket;
     }
     
-    public event Action<OutputStatus>? StreamStatusChanged;
+    public event Action<StreamStatusChangedEventArgs>? StreamStatusChanged;
     
     private CancellationTokenSource streamStatusTokenSource = new();
+    private long lastBytesSent;
 
     public void Initialize()
     {
@@ -67,13 +69,20 @@ internal class StreamingManager : IInitializable, IDisposable
     
     private async Task RepeatPollStreamStatus(CancellationToken token)
     {
+        const int interval = 2500;
+        
         try
         {
             while (!token.IsCancellationRequested && obsWebsocket.IsConnected)
             {
                 var status = obsWebsocket.GetStreamStatus();
-                StreamStatusChanged?.Invoke(status);
-                await Task.Delay(2000, token);
+                var (bytes, duration) = (status.BytesSent, status.Duration);
+                
+                var bitrate = (bytes - lastBytesSent) / (interval / 1000) * 8;
+                lastBytesSent = bytes;
+
+                StreamStatusChanged?.Invoke(new(bitrate, duration));
+                await Task.Delay(interval, token);
             }
         }
         catch (OperationCanceledException) { }

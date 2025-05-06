@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using OBSControl.Managers;
+using OBSControl.Models;
 using OBSControl.UI.Formatters;
 using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Types;
@@ -44,9 +45,10 @@ internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyP
         streamingManager.StreamStatusChanged -= StreamStatusChanged;
     }
 
-    private void StreamStatusChanged(OutputStatus outputStatus)
+    private void StreamStatusChanged(StreamStatusChangedEventArgs status)
     {
-        StreamTime = (int)(outputStatus.Duration / 1000);
+        StreamTime = (int)(status.StreamDuration / 1000);
+        Bitrate = status.Bitrate / 1048576f;
     }
 
     private void SceneChanged(string sceneName) => CurrentScene = sceneName;
@@ -110,8 +112,8 @@ internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyP
         }
     }
 
-    private int bitrate;
-    public int Bitrate
+    private float bitrate;
+    public float Bitrate
     {
         get => bitrate;
         set
