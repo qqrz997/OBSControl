@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using OBSControl.Models;
-using UnityEngine;
 using static LevelCompletionResults;
 
 namespace OBSControl.Utilities;
@@ -254,7 +253,7 @@ internal static class FileRenaming
         };
         if (energyType != null)
             activeModifiers.Add(energyType);
-        if (modifiers.noFailOn0Energy && Mathf.Approximately(results.Energy, 0))
+        if (modifiers.noFailOn0Energy && results.Energy.Approximately(0))
             activeModifiers.Add("NF");
         if (modifiers.instaFail)
             activeModifiers.Add("IF");

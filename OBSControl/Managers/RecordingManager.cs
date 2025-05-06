@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using OBSControl.Models;
 using OBSControl.Utilities;
@@ -30,7 +29,6 @@ internal class RecordingManager : IInitializable, IDisposable
     }
     
     private bool recordingCurrentLevel;
-    private bool switchToGameSceneOnRecordEnd;
     private string? newRecordingFilename;
     private string? lastRecordingFilename;
 
@@ -42,32 +40,12 @@ internal class RecordingManager : IInitializable, IDisposable
     public void Dispose()
     {
         eventManager.RecordingStateChanged -= RecordingStateChanged;
-        if (recordingCurrentLevel) StopRecordingImmediately();
+        if (!recordingCurrentLevel) return;
+        lastRecordingFilename = obsWebsocket.StopRecord();
+        recordingCurrentLevel = false;
     }
 
-    public void StartRecordingLevel()
-    {
-        Task.Run(TryStartRecordingAsync);
-    }
-
-    public void OnStandardLevelFinished(ExtendedLevelData levelData, ExtendedCompletionResults levelCompletionResults)
-    {
-        try
-        {
-            var newFileName = FileRenaming.GetFilenameString(
-                pluginConfig.RecordingFileFormat, levelData, levelCompletionResults, 
-                pluginConfig.InvalidCharacterSubstitute, pluginConfig.ReplaceSpacesWith);
-
-            if (recordingCurrentLevel) Task.Run(() => StopRecording(newFileName));
-        }
-        catch (Exception ex)
-        {
-            Plugin.Log.Error($"Error generating new file name: {ex}");
-            Plugin.Log.Debug(ex);
-        }
-    }
-    
-    private async Task TryStartRecordingAsync()
+    public async Task StartRecordingLevel(Action initialTransitionCallback)
     {
         if (!obsWebsocket.IsConnected || obsWebsocket.GetRecordStatus().IsRecording)
         {
@@ -76,84 +54,85 @@ internal class RecordingManager : IInitializable, IDisposable
         
         try
         {
-            if (!IsValidSceneTransition(pluginConfig.StartSceneName, pluginConfig.GameSceneName))
+            if (!pluginConfig.UseSceneTransitions)
             {
-                if (!string.IsNullOrEmpty(pluginConfig.GameSceneName)) 
-                    obsWebsocket.SetCurrentProgramScene(pluginConfig.GameSceneName);
+                // Wait for the initial scene to be shown before starting recording
+                await sceneManager.TransitionToScene(pluginConfig.GameSceneName);
+                initialTransitionCallback();
                 obsWebsocket.StartRecord();
+                return;
+            }
+
+            // Try transition to start scene
+            if (await sceneManager.TransitionToScene(pluginConfig.StartSceneName))
+            {
+                obsWebsocket.StartRecord();
+                await Task.Delay(TimeSpan.FromSeconds(pluginConfig.StartSceneDuration));
+                initialTransitionCallback();
             }
             else
             {
-                Plugin.Log.Info($"Setting intro OBS scene to '{pluginConfig.StartSceneName}'");
-                obsWebsocket.SetCurrentProgramScene(pluginConfig.StartSceneName);
                 obsWebsocket.StartRecord();
-                if (pluginConfig.StartSceneDuration > 0)
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(pluginConfig.StartSceneDuration));
-                }
-                Plugin.Log.Info($"Setting game OBS scene to '{pluginConfig.GameSceneName}'");
-                obsWebsocket.SetCurrentProgramScene(pluginConfig.GameSceneName);
+                initialTransitionCallback();
             }
+
+            await sceneManager.TransitionToScene(pluginConfig.GameSceneName);
         }
         catch (Exception ex)
         {
-            Plugin.Log.Error($"Error starting recording in OBS: {ex.Message}");
-            Plugin.Log.Debug(ex);
-        }
-    }
-    
-    private async Task StopRecording(string fileName)
-    {
-        if (!obsWebsocket.IsConnected)
-        {
-            return;
-        }
-        
-        try
-        { 
-            if (pluginConfig.RecordingStopDelay > 0)
-            {
-                await Task.Delay(TimeSpan.FromSeconds(pluginConfig.RecordingStopDelay));
-            }
-            
-            if (IsValidSceneTransition(pluginConfig.EndSceneName, pluginConfig.GameSceneName))
-            {
-                if (pluginConfig.EndSceneDelay > 0)
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(pluginConfig.EndSceneDelay));
-                }
-                
-                Plugin.Log.Info($"Setting outro OBS scene to '{pluginConfig.EndSceneName}' for {pluginConfig.EndSceneDuration:F1}s");
-                obsWebsocket.SetCurrentProgramScene(pluginConfig.GameSceneName);
-                if (pluginConfig.EndSceneDuration > 0)
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(pluginConfig.EndSceneDuration));
-                }
-            }
-            
-            newRecordingFilename = fileName;
-            switchToGameSceneOnRecordEnd = true;
-            lastRecordingFilename = obsWebsocket.StopRecord();
-            recordingCurrentLevel = false;
-        }
-        catch (ErrorResponseException ex)
-        {
-            Plugin.Log.Error($"Error trying to stop recording: {ex.Message}");
-            if (ex.Message != "recording not active")
-                Plugin.Log.Debug(ex);
-        }
-        catch (Exception ex)
-        {
-            Plugin.Log.Error($"Unexpected exception trying to stop recording: {ex.Message}");
-            Plugin.Log.Debug(ex);
+            Plugin.Log.Error($"Encountered an error while trying to start recording: {ex}");
         }
     }
 
-    private void StopRecordingImmediately()
+    public void OnStandardLevelFinished(ExtendedLevelData levelData, ExtendedCompletionResults levelCompletionResults)
     {
-        switchToGameSceneOnRecordEnd = true;
-        if (obsWebsocket.IsConnected) obsWebsocket.StopRecord();
-        recordingCurrentLevel = false;
+        try
+        {
+            newRecordingFilename = FileRenaming.GetFilenameString(
+                pluginConfig.RecordingFileFormat, levelData, levelCompletionResults, 
+                pluginConfig.InvalidCharacterSubstitute, pluginConfig.ReplaceSpacesWith);
+
+            if (recordingCurrentLevel)
+            {
+                Task.Run(StopRecording);
+            }
+        }
+        catch (Exception ex)
+        {
+            Plugin.Log.Error($"Encountered an error during end of level: {ex}");
+        }
+    }
+
+    private async Task StopRecording()
+    {
+        if (!obsWebsocket.IsConnected) return;
+        
+        try
+        {
+            await Task.Delay(TimeSpan.FromSeconds(pluginConfig.RecordingStopDelay));
+            if (!pluginConfig.UseSceneTransitions)
+            {
+                lastRecordingFilename = obsWebsocket.StopRecord();
+                recordingCurrentLevel = false;
+                return;
+            }
+
+            // Transition from game scene to end scene
+            await Task.Delay(TimeSpan.FromSeconds(pluginConfig.EndSceneDelay));
+            if (await sceneManager.TransitionToScene(pluginConfig.EndSceneName))
+            {
+                await Task.Delay(TimeSpan.FromSeconds(pluginConfig.EndSceneDuration));
+            }
+
+            lastRecordingFilename = obsWebsocket.StopRecord();
+            recordingCurrentLevel = false;
+
+            await sceneManager.TransitionToScene(pluginConfig.PostRecordSceneName);
+        }
+        catch (Exception ex)
+        {
+            Plugin.Log.Error($"Encountered an error while trying to stop recording: {ex}");
+        }
     }
 
     private void RecordingStateChanged(OutputState type)
@@ -181,11 +160,6 @@ internal class RecordingManager : IInitializable, IDisposable
 
     private void HandleRecordingStopped()
     {
-        if (switchToGameSceneOnRecordEnd)
-        {
-            
-        }
-        
         if (newRecordingFilename is not null)
         {
             RenameLastRecording(newRecordingFilename);
@@ -241,13 +215,7 @@ internal class RecordingManager : IInitializable, IDisposable
         }
         catch (Exception ex)
         {
-            Plugin.Log.Error($"Unable to rename last recording: {ex.Message}");
-            Plugin.Log.Debug(ex);
+            Plugin.Log.Error($"Encountered an error while trying to rename last recording: {ex}");
         }
-    }
-
-    private bool IsValidSceneTransition(params string[] scenes)
-    {
-        return scenes.Length != 0 && scenes.All(s => !string.IsNullOrEmpty(s) && sceneManager.Contains(s));
     }
 }

@@ -1,7 +1,7 @@
 ﻿<settings-container xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
                     xsi:noNamespaceSchemaLocation='https://monkeymanboy.github.io/BSML-Docs/BSMLSchema.xsd'>
   
-  <bool-setting text='Enabled' value='Enabled'/>
+  <bool-setting text='Enabled' value='Enabled' apply-on-change="true"/>
 
   <horizontal pref-height="3"/>
   
@@ -26,6 +26,10 @@
 
 <!--      <bool-setting value='EnableAutoRecord' text='Automatic Recording'-->
 <!--                    hover-hint='Enable or Disable automatic recording.'/>-->
+
+        <toggle-setting text="Use Scene Transitions" value="UseSceneTransitions" apply-on-change="true"
+                        hover-hint="When enabled, the start, end, and post-record scenes will be used. Otherwise, 
+                                    only the game scene will be used"/>
       
 <!--      <bool-setting value='AutoStopOnManual' text='Automatically Stop Recordings'-->
 <!--                    hover-hint='Enable automatic stop when recording is manually triggered.'/>-->
@@ -62,10 +66,6 @@
       
       <macro.as-host host="SceneSettingsView">
 
-        <dropdown-list-setting id='GameSceneDropdown' text='Game Scene' value='GameSceneName'
-                               options='SceneSelectOptions' apply-on-change='true'
-                               hover-hint='Name of the scene to use for gameplay.'/>
-
         <dropdown-list-setting id='StartSceneDropdown' text='Start Scene' value='StartSceneName'
                                options='SceneSelectOptions' apply-on-change='true'
                                hover-hint='Name of the scene to show before the Game Scene.'/>
@@ -74,21 +74,25 @@
                         min='0' max='20' increment='0.1' show-buttons="true" formatter='FloatToSeconds'
                         hover-hint='How long the Start Scene is shown before switching to the Game Scene.'/>
 
+        <dropdown-list-setting id='GameSceneDropdown' text='Game Scene' value='GameSceneName'
+                               options='SceneSelectOptions' apply-on-change='true'
+                               hover-hint='Name of the scene to use for gameplay.'/>
+
         <dropdown-list-setting id='EndSceneDropdown' text='End Scene' value='EndSceneName'
                                options='SceneSelectOptions' apply-on-change='true'
                                hover-hint='Name of the scene to show after the Recording Stop Delay.'/>
 
         <slider-setting text='End Scene Delay' value='EndSceneDelay' integer-only='false' apply-on-change="true"
                         min='0' max='20' increment='0.1' show-buttons="true" formatter='FloatToSeconds'
-                        hover-hint='How long to wait before switching to the end scene.'/>
+                        hover-hint='The amount of time between song end and switching to the end scene.'/>
         
         <slider-setting text='End Scene Duration' value='EndSceneDuration' integer-only='false' apply-on-change="true"
                         min='0' max='20' increment='0.1' show-buttons="true" formatter='FloatToSeconds'
                         hover-hint='How long the End Scene is shown before the recording is stopped.'/>
 
-<!--        <dropdown-list-setting id='PostRecordSceneDropdown' text='Post-Record Scene' value='PostRecordSceneName'-->
-<!--                               options='SceneSelectOptions' apply-on-change='true'-->
-<!--                               hover-hint='Name of the scene to switch to after recording stops (default is GameScene).'/>-->
+        <dropdown-list-setting id='PostRecordSceneDropdown' text='Post-Record Scene' value='PostRecordSceneName'
+                               options='SceneSelectOptions' apply-on-change='true'
+                               hover-hint='Name of the scene to switch to after recording.'/>
       </macro.as-host>
     </scrollable-settings-container>
   </settings-submenu>

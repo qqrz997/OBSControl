@@ -11,6 +11,12 @@ internal class RecordingSettingsView
         this.pluginConfig = pluginConfig;
     }
 
+    public bool UseSceneTransitions
+    {
+        get => pluginConfig.UseSceneTransitions;
+        set => pluginConfig.UseSceneTransitions = value;
+    }
+
     public float LevelStartDelay
     {
         get => pluginConfig.LevelStartDelay;

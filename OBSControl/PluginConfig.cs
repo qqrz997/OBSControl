@@ -14,6 +14,8 @@ internal class PluginConfig
     public virtual string? WsPort { get; set; } = "4455";
     public virtual string? ServerPassword { get; set; } = string.Empty;
 
+    public virtual bool UseSceneTransitions { get; set; } = true;
+
     private float levelStartDelay = 3f;
     public virtual float LevelStartDelay
     {
@@ -57,6 +59,7 @@ internal class PluginConfig
     public virtual string StartSceneName { get; set; } = string.Empty;
     public virtual string GameSceneName { get; set; } = string.Empty;
     public virtual string EndSceneName { get; set; } = string.Empty;
+    public virtual string PostRecordSceneName { get; set; } = string.Empty;
     
     // Control screen config
     public virtual bool ShowControlScreen { get; set; } = true;

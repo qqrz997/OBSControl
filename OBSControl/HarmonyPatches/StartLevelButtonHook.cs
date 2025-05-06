@@ -1,28 +1,24 @@
 ﻿using System;
-using System.Collections;
+using System.Threading.Tasks;
+using IPA.Utilities.Async;
 using OBSControl.Managers;
 using OBSWebsocketDotNet;
 using SiraUtil.Affinity;
-using UnityEngine;
-using UnityEngine.UI;
 
 namespace OBSControl.HarmonyPatches;
 
 internal class StartLevelButtonHook : IAffinity
 {
     private readonly PluginConfig pluginConfig;
-    private readonly ICoroutineStarter coroutineStarter;
     private readonly IOBSWebsocket obsWebsocket;
     private readonly RecordingManager recordingManager;
 
     public StartLevelButtonHook(
         PluginConfig pluginConfig,
-        ICoroutineStarter coroutineStarter,
         IOBSWebsocket obsWebsocket,
         RecordingManager recordingManager)
     {
         this.pluginConfig = pluginConfig;
-        this.coroutineStarter = coroutineStarter;
         this.obsWebsocket = obsWebsocket;
         this.recordingManager = recordingManager;
     }
@@ -49,12 +45,6 @@ internal class StartLevelButtonHook : IAffinity
             return true;
         }
         
-        if (pluginConfig.LevelStartDelay == 0)
-        {
-            recordingManager.StartRecordingLevel();
-            return true;
-        }
-        
         if (DelayedStartActive && WaitingToStart)
         {
             return false; // Ignore this call to StartLevel
@@ -67,27 +57,37 @@ internal class StartLevelButtonHook : IAffinity
         }
 
         var button = __instance.levelSelectionNavigationController._levelCollectionNavigationController._levelDetailViewController._standardLevelDetailView.actionButton;
-        coroutineStarter.StartCoroutine(StartLevelAfterDelay(__instance, beforeSceneSwitchCallback, practice, button));
-        return false;
-    }
-
-    private IEnumerator StartLevelAfterDelay(
-        SinglePlayerLevelSelectionFlowCoordinator levelSelectionFlowCoordinator,
-        Action beforeSceneSwitchCallback,
-        bool practice,
-        Button playButton)
-    {
+        var buttonText = __instance.levelSelectionNavigationController._levelCollectionNavigationController._levelDetailViewController._standardLevelDetailView._actionButtonText;
+        var originalButtonText = buttonText.text;
+        
         DelayedStartActive = true;
         WaitingToStart = true;
-        playButton.interactable = false;
-        recordingManager.StartRecordingLevel();
+        button.interactable = false;
+        buttonText.text = "Starting";
+
+        Task.Run(InitiateRecording);
         
-        Plugin.Log.Debug($"Delaying level start by {pluginConfig.LevelStartDelay} seconds...");
-        yield return new WaitForSeconds(pluginConfig.LevelStartDelay);
+        return false;
+
+        async Task InitiateRecording()
+        {
+            // Wait until the initial scene is shown before continuing
+            await recordingManager.StartRecordingLevel(() =>
+            {
+                // Run this on the main thread since it interacts with game components
+                UnityMainThreadTaskScheduler.Factory.StartNew(StartLevelAfterDelay);
+            });
+        }
         
-        WaitingToStart = false;
-        playButton.interactable = true;
+        async Task StartLevelAfterDelay()
+        {
+            await Task.Delay(TimeSpan.FromSeconds(pluginConfig.LevelStartDelay));
+            
+            WaitingToStart = false;
+            button.interactable = true;
+            buttonText.text = originalButtonText;
         
-        levelSelectionFlowCoordinator.StartLevel(beforeSceneSwitchCallback, practice);
+            __instance.StartLevel(beforeSceneSwitchCallback, practice);
+        }
     }
 }

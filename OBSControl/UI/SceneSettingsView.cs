@@ -20,6 +20,7 @@ internal class SceneSettingsView
     [UIComponent("StartSceneDropdown")] private readonly DropDownListSetting startSceneDropDown = null!;
     [UIComponent("GameSceneDropdown")] private readonly DropDownListSetting gameSceneDropdown = null!;
     [UIComponent("EndSceneDropdown")] private readonly DropDownListSetting endSceneDropdown = null!;
+    [UIComponent("PostRecordSceneDropdown")] private readonly DropDownListSetting postRecordSceneDropdown = null!;
 
     [UIValue("SceneSelectOptions"), UsedImplicitly]
     public readonly List<object> SceneSelectOptions = [string.Empty];
@@ -60,6 +61,12 @@ internal class SceneSettingsView
         set => pluginConfig.EndSceneDelay = value;
     }
 
+    public string PostRecordSceneName
+    {
+        get => pluginConfig.PostRecordSceneName;
+        set => pluginConfig.PostRecordSceneName = value;
+    }
+
     public string FloatToSeconds(float val) => $"{Math.Round(val, 1)}s";
     
     public void UpdateSceneOptions(IEnumerable<string> newOptions)
@@ -71,5 +78,6 @@ internal class SceneSettingsView
         startSceneDropDown.RefreshDropdown();
         gameSceneDropdown.RefreshDropdown();
         endSceneDropdown.RefreshDropdown();
+        postRecordSceneDropdown.RefreshDropdown();
     }
 }
