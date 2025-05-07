@@ -160,10 +160,9 @@
                         <text text='Recording State:' font-size='4'  align='MidlineLeft' size-delta-x='32'/>
                         <text data='IsRecording' data-formatter='BoolFormatter' data-format='Recording|Stopped' color='~RecordingTextColor'
                               align='MidlineLeft' size-delta-x='25'/>
-                        <button text='Start' active='~IsNotRecording' interactable='~RecordButtonInteractable'
-                                on-click='StartRecording' preferred-height='8' min-width='30' preferred-width='30'/>
-                        <button text='Stop' active='~IsRecording' interactable='~RecordButtonInteractable' overflow-mode='Overflow'
-                                on-click='StopRecording' preferred-height='8' min-width='30' preferred-width='30'/>
+                        <button text='~RecordButtonText' on-click='RecordButtonClicked'
+                                interactable='~RecordButtonInteractable' align='Midline'
+                                preferred-height='8' min-width='32' preferred-width='32'/>
                     </horizontal>
                     
                     <horizontal pad-left='3' pad-right='-3' pref-height='7'

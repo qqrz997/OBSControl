@@ -1,24 +1,62 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using OBSControl.Managers;
 using OBSControl.UI.Formatters;
+using OBSWebsocketDotNet;
+using OBSWebsocketDotNet.Types;
+using Zenject;
 
 namespace OBSControl.UI;
 
-internal class ControlScreenRecordingTab : INotifyPropertyChanged
+internal class ControlScreenRecordingTab : IInitializable, IDisposable, INotifyPropertyChanged
 {
-    public ControlScreenRecordingTab(BoolFormatter boolFormatter)
+    private readonly IOBSWebsocket obsWebsocket;
+    private readonly EventManager eventManager;
+    private readonly RecordingManager recordingManager;
+    
+    public ControlScreenRecordingTab(
+        IOBSWebsocket obsWebsocket,
+        EventManager eventManager,
+        RecordingManager recordingManager,
+        BoolFormatter boolFormatter)
     {
+        this.obsWebsocket = obsWebsocket;
+        this.eventManager = eventManager;
+        this.recordingManager = recordingManager;
+        
         BoolFormatter = boolFormatter;
+    }
+
+    public void Initialize()
+    {
+        eventManager.RecordingStateChanged += RecordingStateChanged;
+    }
+
+    public void Dispose()
+    {
+        eventManager.RecordingStateChanged -= RecordingStateChanged;
     }
     
     public BoolFormatter BoolFormatter { get; }
-    
-    public bool IsRecording { get; set; } = false;
+
+    private bool isRecording;
+
+    public bool IsRecording
+    {
+        get => isRecording;
+        set
+        {
+            isRecording = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(RecordingTextColor));
+            OnPropertyChanged(nameof(IsNotRecording));
+            RecordButtonText = value ? "Stop" : "Start";
+        }
+    }
     public bool IsNotRecording => !IsRecording;
-    
-    public bool RecordButtonInteractable  { get; set; } = true;
-    
-    public string RecordingTextColor { get; set; } = "white";
+    public string RecordingTextColor => IsRecording ? "green" : "red";
     
     public bool EnableAutoRecord { get; set; } = true;
 
@@ -29,6 +67,55 @@ internal class ControlScreenRecordingTab : INotifyPropertyChanged
     public int RecordingOutputFrames { get; set; } = 6;
     
     public int OutputSkippedFrames { get; set; } = 7;
+
+    private bool recordButtonInteractable = true;
+    public bool RecordButtonInteractable
+    {
+        get => recordButtonInteractable;
+        set
+        {
+            recordButtonInteractable = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private string recordButtonText = "Start";
+    public string RecordButtonText
+    {
+        get => recordButtonText;
+        set
+        {
+            recordButtonText = value;
+            OnPropertyChanged();
+        }
+    }
+
+    public async void RecordButtonClicked()
+    {
+        try
+        {
+            if (!obsWebsocket.IsConnected) return;
+            RecordButtonInteractable = false;
+            recordingManager.ManualToggleRecording();
+            await Task.Delay(2000);
+        }
+        catch (Exception ex)
+        {
+            Plugin.Log.Warn($"Error toggling streaming: {ex.Message}");
+            Plugin.Log.Debug(ex);
+        }
+        finally
+        {
+            RecordButtonInteractable = true;
+        }
+    }
+
+    private void RecordingStateChanged(OutputState outputState) => IsRecording = outputState switch
+    {
+        OutputState.OBS_WEBSOCKET_OUTPUT_STARTED => true,
+        OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED => false,
+        _ => IsRecording
+    };
     
     public event PropertyChangedEventHandler? PropertyChanged;
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)

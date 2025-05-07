@@ -45,12 +45,24 @@ internal class RecordingManager : IInitializable, IDisposable
         recordingCurrentLevel = false;
     }
 
+    public void ManualToggleRecording()
+    {
+        if (!obsWebsocket.IsConnected) return;
+        if (!obsWebsocket.GetRecordStatus().IsRecording)
+        {
+            obsWebsocket.StartRecord();
+            recordingCurrentLevel = true;
+        }
+        else
+        {
+            lastRecordingFilename = obsWebsocket.StopRecord();
+            recordingCurrentLevel = false;
+        }
+    }
+    
     public async Task StartRecordingLevel(Action initialTransitionCallback)
     {
-        if (!obsWebsocket.IsConnected || obsWebsocket.GetRecordStatus().IsRecording)
-        {
-            return;
-        }
+        if (!obsWebsocket.IsConnected || obsWebsocket.GetRecordStatus().IsRecording) return;
         
         try
         {
