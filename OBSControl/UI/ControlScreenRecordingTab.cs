@@ -13,16 +13,19 @@ namespace OBSControl.UI;
 internal class ControlScreenRecordingTab : IInitializable, IDisposable, INotifyPropertyChanged
 {
     private readonly IOBSWebsocket obsWebsocket;
+    private readonly PluginConfig pluginConfig;
     private readonly EventManager eventManager;
     private readonly RecordingManager recordingManager;
     
     public ControlScreenRecordingTab(
         IOBSWebsocket obsWebsocket,
+        PluginConfig pluginConfig,
         EventManager eventManager,
         RecordingManager recordingManager,
         BoolFormatter boolFormatter)
     {
         this.obsWebsocket = obsWebsocket;
+        this.pluginConfig = pluginConfig;
         this.eventManager = eventManager;
         this.recordingManager = recordingManager;
         
@@ -57,8 +60,16 @@ internal class ControlScreenRecordingTab : IInitializable, IDisposable, INotifyP
     }
     public bool IsNotRecording => !IsRecording;
     public string RecordingTextColor => IsRecording ? "green" : "red";
-    
-    public bool EnableAutoRecord { get; set; } = true;
+
+    public bool EnableAutoRecord
+    {
+        get => pluginConfig.AutoRecord;
+        set
+        {
+            pluginConfig.AutoRecord = value;
+            OnPropertyChanged();
+        }
+    }
 
     public int FreeDiskSpace { get; set; } = 1024;
     

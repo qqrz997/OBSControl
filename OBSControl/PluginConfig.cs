@@ -13,7 +13,8 @@ internal class PluginConfig
     public virtual string? WsIpAddress { get; set; } = "192.168.0.0";
     public virtual string? WsPort { get; set; } = "4455";
     public virtual string? ServerPassword { get; set; } = string.Empty;
-
+    
+    public bool AutoRecord { get; set; } = true;
     public virtual bool UseSceneTransitions { get; set; } = true;
 
     private float levelStartDelay = 3f;

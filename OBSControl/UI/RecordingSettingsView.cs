@@ -1,14 +1,26 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace OBSControl.UI;
 
-internal class RecordingSettingsView
+internal class RecordingSettingsView : INotifyPropertyChanged
 {
     private readonly PluginConfig pluginConfig;
 
     public RecordingSettingsView(PluginConfig pluginConfig)
     {
         this.pluginConfig = pluginConfig;
+    }
+
+    public bool EnableAutoRecord
+    {
+        get => pluginConfig.AutoRecord;
+        set
+        {
+            pluginConfig.AutoRecord = value;
+            OnPropertyChanged();
+        }
     }
 
     public bool UseSceneTransitions
@@ -30,4 +42,10 @@ internal class RecordingSettingsView
     }
 
     public string FloatToSeconds(float val) => $"{Math.Round(val, 1)}s";
+    
+    public event PropertyChangedEventHandler? PropertyChanged;
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new(propertyName));
+    }
 }

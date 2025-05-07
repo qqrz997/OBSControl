@@ -24,8 +24,8 @@
       
       <macro.as-host host="RecordingSettingsView">
 
-<!--      <bool-setting value='EnableAutoRecord' text='Automatic Recording'-->
-<!--                    hover-hint='Enable or Disable automatic recording.'/>-->
+        <bool-setting value='EnableAutoRecord' text='Automatic Recording' bind-value="true" apply-on-change="true"
+                      hover-hint='Automatically stop and start recordings when playing songs'/>
 
         <toggle-setting text="Use Scene Transitions" value="UseSceneTransitions" apply-on-change="true"
                         hover-hint="When enabled, the start, end, and post-record scenes will be used. Otherwise, 

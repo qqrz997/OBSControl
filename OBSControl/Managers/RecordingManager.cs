@@ -62,7 +62,7 @@ internal class RecordingManager : IInitializable, IDisposable
     
     public async Task StartRecordingLevel(Action initialTransitionCallback)
     {
-        if (!obsWebsocket.IsConnected || obsWebsocket.GetRecordStatus().IsRecording) return;
+        if (!obsWebsocket.IsConnected) return;
         
         try
         {
@@ -71,20 +71,20 @@ internal class RecordingManager : IInitializable, IDisposable
                 // Wait for the initial scene to be shown before starting recording
                 await sceneManager.TransitionToScene(pluginConfig.GameSceneName);
                 initialTransitionCallback();
-                obsWebsocket.StartRecord();
+                StartRecording();
                 return;
             }
 
             // Try transition to start scene
             if (await sceneManager.TransitionToScene(pluginConfig.StartSceneName))
             {
-                obsWebsocket.StartRecord();
+                StartRecording();
                 await Task.Delay(TimeSpan.FromSeconds(pluginConfig.StartSceneDuration));
                 initialTransitionCallback();
             }
             else
             {
-                obsWebsocket.StartRecord();
+                StartRecording();
                 initialTransitionCallback();
             }
 
@@ -145,6 +145,11 @@ internal class RecordingManager : IInitializable, IDisposable
         {
             Plugin.Log.Error($"Encountered an error while trying to stop recording: {ex}");
         }
+    }
+
+    private void StartRecording()
+    {
+        if (obsWebsocket.IsConnected && !obsWebsocket.GetRecordStatus().IsRecording) obsWebsocket.StartRecord();
     }
 
     private void RecordingStateChanged(OutputState type)

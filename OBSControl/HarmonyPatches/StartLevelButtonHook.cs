@@ -34,7 +34,7 @@ internal class StartLevelButtonHook : IAffinity
         Action beforeSceneSwitchCallback,
         bool practice)
     {
-        if (!pluginConfig.Enabled)
+        if (!pluginConfig.Enabled || !pluginConfig.AutoRecord)
         {
             return true;
         }
@@ -71,9 +71,13 @@ internal class StartLevelButtonHook : IAffinity
 
         async Task InitiateRecording()
         {
+            Plugin.Log.Info("Initiating recording scene sequence...");
+            
             // Wait until the initial scene is shown before continuing
             await recordingManager.StartRecordingLevel(() =>
             {
+                Plugin.Log.Info("Initial scene ready, preparing to start level...");
+                
                 // Run this on the main thread since it interacts with game components
                 UnityMainThreadTaskScheduler.Factory.StartNew(StartLevelAfterDelay);
             });

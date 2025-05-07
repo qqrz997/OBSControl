@@ -157,7 +157,7 @@
                     
                     <horizontal pad-left='3' pad-right='-3' pref-height='7'
                                 child-control-width='false' child-expand-width='false'>
-                        <text text='Recording State:' font-size='4'  align='MidlineLeft' size-delta-x='32'/>
+                        <text text='Recording' font-size='4'  align='MidlineLeft' size-delta-x='32'/>
                         <text data='IsRecording' data-formatter='BoolFormatter' data-format='Recording|Stopped' color='~RecordingTextColor'
                               align='MidlineLeft' size-delta-x='25'/>
                         <button text='~RecordButtonText' on-click='RecordButtonClicked'
@@ -167,19 +167,19 @@
                     
                     <horizontal pad-left='3' pad-right='-3' pref-height='7'
                                 child-control-width='false' child-expand-width='false'>
-                        <checkbox text='Enable AutoRecord:' value='EnableAutoRecord' bind-value='true' apply-on-change='true'
+                        <checkbox text='Automatic Recording' value='EnableAutoRecord' bind-value='true' apply-on-change='true'
                                   font-size='4' size-delta-x='50' align='MidlineLeft' italics='false'/>
                     </horizontal>
                     
                     <horizontal pad-left='3' pad-right='-3' pref-height='7'
                                 child-control-width='false' child-expand-width='false'>
-                        <text text='Free Disk Space:'  align='MidlineLeft' size-delta-x='32'/>
+                        <text text='Free Disk Space'  align='MidlineLeft' size-delta-x='32'/>
                         <text data='FreeDiskSpace' data-format='#,0 MB' overflow-mode='Overflow' align='MidlineLeft' size-delta-x='50'/>
                     </horizontal>
                     
                     <horizontal pad-left='3' pad-right='-3' pref-height='7' min-width='50'
                                 child-control-width='false' child-expand-width='false'>
-                        <text text='Current Scene:'  align='MidlineLeft' size-delta-x='32'/>
+                        <text text='Current Scene'  align='MidlineLeft' size-delta-x='32'/>
                         <text data='CurrentScene' overflow-mode='Ellipsis' rich-text='false'
                               align='MidlineLeft' size-delta-x='50'/>
                     </horizontal>
@@ -188,13 +188,13 @@
                                 horizontal-fit='PreferredSize' child-expand-width='false' child-control-width='false'>
                         <horizontal pref-height='7' min-width='40' horizontal-fit='MinSize'
                                     child-control-width='false'>
-                            <text text='Total Frames:'  align='MidlineLeft' size-delta-x='25'/>
+                            <text text='Total Frames'  align='MidlineLeft' size-delta-x='25'/>
                             <text data='RecordingOutputFrames' data-format='#,0' align='MidlineLeft' size-delta-x='17'/>
                         </horizontal>
                         <text text=' | ' size-delta-x='8' align='Midline' overflow-mode='Truncate'/>
                         <horizontal pad-left='3' pref-height='7' min-width='44' horizontal-fit='MinSize'
                                     child-control-width='false'>
-                            <text text='Skipped Frames:'  align='MidlineLeft' size-delta-x='25'/>
+                            <text text='Skipped Frames'  align='MidlineLeft' size-delta-x='25'/>
                             <text data='OutputSkippedFrames' data-format='#,0' align='MidlineLeft' size-delta-x='17'/>
                         </horizontal>
                     </horizontal>
