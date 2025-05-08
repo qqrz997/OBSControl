@@ -35,12 +35,12 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
         eventManager.SceneChanged += SceneChanged;
         eventManager.RecordingStateChanged += RecordingStateChanged;
         eventManager.StreamingStateChanged += StreamingStateChanged;
-        eventManager.CpuUsageChanged += CpuUsageChanged;
+        eventManager.StatsUpdated += StatsUpdated;
         ConnectionStateChanged(obsWebsocket.IsConnected);
         SceneChanged(eventManager.CurrentScene);
         RecordingStateChanged(eventManager.RecordingState);
         StreamingStateChanged(eventManager.StreamingState);
-        CpuUsageChanged(eventManager.CpuUsage);
+        if (eventManager.CurrentStats != null) StatsUpdated(eventManager.CurrentStats);
     }
 
     public void Dispose()
@@ -49,7 +49,7 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
         eventManager.SceneChanged -= SceneChanged;
         eventManager.RecordingStateChanged -= RecordingStateChanged;
         eventManager.StreamingStateChanged -= StreamingStateChanged;
-        eventManager.CpuUsageChanged -= CpuUsageChanged;
+        eventManager.StatsUpdated -= StatsUpdated;
     }
 
     public BoolFormatter BoolFormatter { get; }
@@ -182,9 +182,9 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
         _ => IsRecording
     };
 
-    private void CpuUsageChanged(float usage)
+    private void StatsUpdated(ObsStats stats)
     {
-        CpuUsage = $"{usage:F2} %";
+        CpuUsage = $"{stats.CpuUsage:F2} %";
     }
     
     public event PropertyChangedEventHandler? PropertyChanged;

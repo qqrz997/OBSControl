@@ -32,13 +32,13 @@ internal class EventManager : IInitializable, IDisposable
     public event Action<OutputState>? RecordingStateChanged;
     public event Action<OutputState>? StreamingStateChanged;
     public event Action<long>? DriveSpaceUpdated;
-    public event Action<float>? CpuUsageChanged;
+    public event Action<ObsStats>? StatsUpdated;
 
     public string CurrentScene { get; private set; } = "Unknown";
     public long DriveSpace { get; private set; }
     public OutputState RecordingState { get; private set; } = OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED;
     public OutputState StreamingState { get; private set; } = OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED;
-    public float CpuUsage { get; private set; }
+    public ObsStats? CurrentStats { get; private set; }
 
     public void Initialize()
     {
@@ -171,8 +171,8 @@ internal class EventManager : IInitializable, IDisposable
         {
             while (!token.IsCancellationRequested && obsWebsocket.IsConnected)
             {
-                CpuUsage = (float)obsWebsocket.GetStats().CpuUsage;
-                CpuUsageChanged?.Invoke(CpuUsage);
+                CurrentStats = obsWebsocket.GetStats();
+                StatsUpdated?.Invoke(CurrentStats);
                 await Task.Delay(interval, token);
             }
         }
