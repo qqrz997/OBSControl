@@ -37,14 +37,17 @@ internal class ControlScreenRecordingTab : IInitializable, IDisposable, INotifyP
     {
         eventManager.RecordingStateChanged += RecordingStateChanged;
         eventManager.DriveSpaceUpdated += DriveSpaceUpdated;
+        eventManager.SceneChanged += SceneChanged;
         RecordingStateChanged(eventManager.RecordingState);
         DriveSpaceUpdated(eventManager.DriveSpace);
+        SceneChanged(eventManager.CurrentScene);
     }
 
     public void Dispose()
     {
         eventManager.RecordingStateChanged -= RecordingStateChanged;
         eventManager.DriveSpaceUpdated -= DriveSpaceUpdated;
+        eventManager.SceneChanged -= SceneChanged;
     }
     
     public BoolFormatter BoolFormatter { get; }
@@ -97,7 +100,16 @@ internal class ControlScreenRecordingTab : IInitializable, IDisposable, INotifyP
         }
     }
     
-    public string CurrentScene { get; set; } = "Scene";
+    private string currentScene = "Unknown";
+    public string CurrentScene
+    {
+        get => currentScene;
+        set
+        {
+            currentScene = value;
+            OnPropertyChanged();
+        }
+    }
     
     public int RecordingOutputFrames { get; set; } = 6;
     
@@ -155,6 +167,11 @@ internal class ControlScreenRecordingTab : IInitializable, IDisposable, INotifyP
     private void DriveSpaceUpdated(long driveSpace)
     {
         FreeDiskSpace = driveSpace.FormatBytes();
+    }
+
+    private void SceneChanged(string sceneName)
+    {
+        CurrentScene = sceneName;
     }
     
     public event PropertyChangedEventHandler? PropertyChanged;
