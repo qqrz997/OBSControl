@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using OBSControl.Utilities;
 using OBSWebsocketDotNet;
@@ -26,8 +27,10 @@ internal class EventManager : IInitializable, IDisposable
     public event Action<IEnumerable<string>>? SceneNamesUpdated; 
     public event Action<OutputState>? RecordingStateChanged;
     public event Action<OutputState>? StreamingStateChanged;
+    public event Action<long>? DriveSpaceUpdated;
 
     public string CurrentScene { get; private set; } = "Unknown";
+    public long DriveSpace { get; private set; } = 0;
     public OutputState RecordingState { get; private set; } = OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED;
     public OutputState StreamingState { get; private set; } = OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED;
 
@@ -55,7 +58,9 @@ internal class EventManager : IInitializable, IDisposable
     {
         Plugin.Log.Info($"OBS Connected to {pluginConfig.GetFullAddress()}.");
         ConnectionStateChanged?.Invoke(true);
+        
         UpdateSceneList();
+        UpdateAvailableDriveSpace();
     }
     
     private void ObsDisconnected(object sender, ObsDisconnectionInfo disconnectionInfo)
@@ -80,6 +85,11 @@ internal class EventManager : IInitializable, IDisposable
         Plugin.Log.Info($"Recording State Changed: {e.OutputState.State}");
         RecordingState = e.OutputState.State;
         RecordingStateChanged?.Invoke(e.OutputState.State);
+
+        if (e.OutputState.State == OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED)
+        {
+            UpdateAvailableDriveSpace();
+        }
     }
 
     private void ObsStreamStateChanged(object sender, StreamStateChangedEventArgs e)
@@ -91,10 +101,7 @@ internal class EventManager : IInitializable, IDisposable
 
     private void UpdateSceneList()
     {
-        if (!obsWebsocket.IsConnected)
-        {
-            return;
-        }
+        if (!obsWebsocket.IsConnected) return;
         
         try
         {
@@ -106,8 +113,26 @@ internal class EventManager : IInitializable, IDisposable
         }
         catch (Exception ex)
         {
-            Plugin.Log.Error($"Error getting scene list: {ex.Message}");
-            Plugin.Log.Debug(ex);
+            Plugin.Log.Error($"Encountered a problem while trying to update scene list: {ex}");
+        }
+    }
+
+    private void UpdateAvailableDriveSpace()
+    {
+        if (!obsWebsocket.IsConnected) return;
+
+        try
+        {
+            var recordPath = obsWebsocket.GetRecordDirectory();
+            var recordDirectory = new DirectoryInfo(recordPath);
+            var driveInfo = new DriveInfo(recordDirectory.Root.FullName);
+
+            DriveSpace = driveInfo.AvailableFreeSpace;
+            DriveSpaceUpdated?.Invoke(driveInfo.AvailableFreeSpace);
+        }
+        catch (Exception ex)
+        {
+            Plugin.Log.Error($"Encountered a problem while trying to update available drive space: {ex}");
         }
     }
 }

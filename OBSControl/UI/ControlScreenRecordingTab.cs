@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using OBSControl.Managers;
 using OBSControl.UI.Formatters;
+using OBSControl.Utilities;
 using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Types;
 using Zenject;
@@ -35,11 +36,15 @@ internal class ControlScreenRecordingTab : IInitializable, IDisposable, INotifyP
     public void Initialize()
     {
         eventManager.RecordingStateChanged += RecordingStateChanged;
+        eventManager.DriveSpaceUpdated += DriveSpaceUpdated;
+        RecordingStateChanged(eventManager.RecordingState);
+        DriveSpaceUpdated(eventManager.DriveSpace);
     }
 
     public void Dispose()
     {
         eventManager.RecordingStateChanged -= RecordingStateChanged;
+        eventManager.DriveSpaceUpdated -= DriveSpaceUpdated;
     }
     
     public BoolFormatter BoolFormatter { get; }
@@ -81,7 +86,16 @@ internal class ControlScreenRecordingTab : IInitializable, IDisposable, INotifyP
         }
     }
 
-    public int FreeDiskSpace { get; set; } = 1024;
+    private string freeDiskSpace = "Unknown";
+    public string FreeDiskSpace
+    {
+        get => freeDiskSpace;
+        set
+        {
+            freeDiskSpace = value;
+            OnPropertyChanged();
+        }
+    }
     
     public string CurrentScene { get; set; } = "Scene";
     
@@ -137,6 +151,11 @@ internal class ControlScreenRecordingTab : IInitializable, IDisposable, INotifyP
         OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED => false,
         _ => IsRecording
     };
+
+    private void DriveSpaceUpdated(long driveSpace)
+    {
+        FreeDiskSpace = driveSpace.FormatBytes();
+    }
     
     public event PropertyChangedEventHandler? PropertyChanged;
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
