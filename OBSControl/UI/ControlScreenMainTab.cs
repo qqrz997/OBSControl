@@ -136,17 +136,6 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
         }
     }
 
-    private int renderMissedFrames;
-    public int RenderMissedFrames
-    {
-        get => renderMissedFrames;
-        set
-        {
-            renderMissedFrames = value;
-            OnPropertyChanged();
-        }
-    }
-
     public async void ConnectButtonClicked()
     {
         try
@@ -165,11 +154,6 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
             await Task.Delay(1000);
             ConnectButtonInteractable = true;
         }
-    }
-
-    public void ResetRenderMissedFrames()
-    {
-        RenderMissedFrames = 0;
     }
 
     private void ConnectionStateChanged(bool connected) => IsConnected = connected;

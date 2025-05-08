@@ -74,15 +74,6 @@
                               align='MidlineLeft' size-delta-x='50'/>
                     </horizontal>
                     
-                    <horizontal pad-left='3' pad-right='-3'
-                                pref-height='7' min-width='50' child-align='MiddleLeft'
-                                child-control-width='false' child-expand-width='false'>
-                        <text text='Render Missed Frames'  align='MidlineLeft' size-delta-x='32'/>
-                        <text data='RenderMissedFrames' data-format='#,0 Frames' align='MidlineLeft' size-delta-x='25'/>
-                        <clickable-image on-click='ResetRenderMissedFrames' src='#ResetIcon' 
-                                         pref-height='7' preferred-width='10' preserve-aspect='true'/>
-                    </horizontal>
-                    
                 </vertical>
             </macro.as-host>
         </tab>
