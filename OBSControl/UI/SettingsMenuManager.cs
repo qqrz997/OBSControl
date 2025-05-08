@@ -7,20 +7,20 @@ namespace OBSControl.UI;
 internal class SettingsMenuManager : IInitializable, IDisposable
 {
     private readonly BSMLSettings bsmlSettings;
-    private readonly PluginSettingsView pluginSettingsView;
+    private readonly SettingsMenuMain settingsMenuMain;
 
     private const string MenuName = "OBSControl";
     private const string ResourcePath = "OBSControl.UI.SettingsView.bsml";
     
-    public SettingsMenuManager(BSMLSettings bsmlSettings, PluginSettingsView pluginSettingsView)
+    public SettingsMenuManager(BSMLSettings bsmlSettings, SettingsMenuMain settingsMenuMain)
     {
         this.bsmlSettings = bsmlSettings;
-        this.pluginSettingsView = pluginSettingsView;
+        this.settingsMenuMain = settingsMenuMain;
     }
     
     public void Initialize()
     {
-        bsmlSettings.AddSettingsMenu(MenuName, ResourcePath, pluginSettingsView);
+        bsmlSettings.AddSettingsMenu(MenuName, ResourcePath, settingsMenuMain);
     }
 
     public void Dispose()

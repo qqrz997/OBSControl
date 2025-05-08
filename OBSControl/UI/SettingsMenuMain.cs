@@ -7,37 +7,32 @@ using Zenject;
 
 namespace OBSControl.UI;
 
-internal class PluginSettingsView : IInitializable, IDisposable
+internal class SettingsMenuMain : IInitializable, IDisposable
 {
     private readonly PluginConfig pluginConfig;
     private readonly EventManager eventManager;
     private readonly SceneManager sceneManager;
 
-    public PluginSettingsView(
+    public SettingsMenuMain(
         PluginConfig pluginConfig,
         EventManager eventManager,
         SceneManager sceneManager,
-        AudioDeviceSettingsView audioDeviceSettingsView,
-        SceneSettingsView sceneSettingsView,
-        RecordingSettingsView recordingSettingsView)
+        SettingsMenuScene settingsMenuScene,
+        SettingsMenuRecording settingsMenuRecording)
     {
         this.pluginConfig = pluginConfig;
         this.eventManager = eventManager;
         this.sceneManager = sceneManager;
 
-        AudioDeviceSettingsView = audioDeviceSettingsView;
-        SceneSettingsView = sceneSettingsView;
-        RecordingSettingsView = recordingSettingsView;
+        SettingsMenuScene = settingsMenuScene;
+        SettingsMenuRecording = settingsMenuRecording;
     }
 
     [UsedImplicitly]
-    public AudioDeviceSettingsView AudioDeviceSettingsView { get; }
+    public SettingsMenuScene SettingsMenuScene { get; }
     
     [UsedImplicitly]
-    public SceneSettingsView SceneSettingsView { get; }
-    
-    [UsedImplicitly]
-    public RecordingSettingsView RecordingSettingsView { get; }
+    public SettingsMenuRecording SettingsMenuRecording { get; }
 
     public void Initialize()
     {
@@ -83,6 +78,6 @@ internal class PluginSettingsView : IInitializable, IDisposable
     
     private void UpdateSceneOptions(IEnumerable<string> sceneNames)
     {
-        SceneSettingsView.UpdateSceneOptions(sceneNames);
+        SettingsMenuScene.UpdateSceneOptions(sceneNames);
     }
 }

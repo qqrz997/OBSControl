@@ -4,11 +4,11 @@ using System.Runtime.CompilerServices;
 
 namespace OBSControl.UI;
 
-internal class RecordingSettingsView : INotifyPropertyChanged
+internal class SettingsMenuRecording : INotifyPropertyChanged
 {
     private readonly PluginConfig pluginConfig;
 
-    public RecordingSettingsView(PluginConfig pluginConfig)
+    public SettingsMenuRecording(PluginConfig pluginConfig)
     {
         this.pluginConfig = pluginConfig;
     }

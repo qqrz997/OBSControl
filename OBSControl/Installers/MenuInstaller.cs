@@ -12,10 +12,9 @@ internal class MenuInstaller : Installer
         Container.BindInterfacesTo<SettingsMenuManager>().AsSingle();
         Container.BindInterfacesAndSelfTo<ControlScreenManager>().AsSingle();
         
-        Container.BindInterfacesAndSelfTo<PluginSettingsView>().AsSingle();
-        Container.BindInterfacesAndSelfTo<AudioDeviceSettingsView>().AsSingle();
-        Container.BindInterfacesAndSelfTo<RecordingSettingsView>().AsSingle();
-        Container.BindInterfacesAndSelfTo<SceneSettingsView>().AsSingle();
+        Container.BindInterfacesAndSelfTo<SettingsMenuMain>().AsSingle();
+        Container.BindInterfacesAndSelfTo<SettingsMenuRecording>().AsSingle();
+        Container.BindInterfacesAndSelfTo<SettingsMenuScene>().AsSingle();
         
         Container.Bind<ControlScreen>().FromNewComponentAsViewController().AsSingle();
         Container.BindInterfacesAndSelfTo<ControlScreenMainTab>().AsSingle();

@@ -8,11 +8,11 @@ using OBSControl.Utilities;
 
 namespace OBSControl.UI;
 
-internal class SceneSettingsView
+internal class SettingsMenuScene
 {
     private readonly PluginConfig pluginConfig;
 
-    public SceneSettingsView(PluginConfig pluginConfig)
+    public SettingsMenuScene(PluginConfig pluginConfig)
     {
         this.pluginConfig = pluginConfig;
     }
