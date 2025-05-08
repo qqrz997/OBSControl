@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using OBSControl.Managers;
 using OBSControl.Models;
+using OBSControl.Utilities;
 using SiraUtil.Affinity;
 using UnityEngine;
 
@@ -30,19 +31,7 @@ internal class StandardLevelEndHook : IAffinity
         StandardLevelScenesTransitionSetupDataSO standardLevelScenesTransitionSetupData,
         LevelCompletionResults levelCompletionResults)
     {
-        if (!pluginConfig.Enabled)
-        {
-            return;
-        }
-
-        if (pluginConfig is
-            {
-                AutoRecord: false,
-                AutoStopRecord: false
-            })
-        {
-            return;
-        }
+        if (!pluginConfig.ShouldAutoStopRecording()) return;
 
         var playCount = playerDataModel.playerData.GetOrCreatePlayerLevelStatsData(
             standardLevelScenesTransitionSetupData.beatmapLevel.levelID,

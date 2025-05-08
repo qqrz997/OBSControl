@@ -7,4 +7,11 @@ internal static class ConfigExtensions
 
     public static string GetFullAddress(this PluginConfig config) =>
         $"ws://{config.WsIpAddress}:{config.WsPort}";
+
+    public static bool ShouldAutoStopRecording(this PluginConfig config) =>
+        config.Enabled && config is not
+        {
+            AutoRecord: false,
+            AutoStopRecord: false
+        };
 }
