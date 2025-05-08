@@ -173,6 +173,12 @@
                     
                     <horizontal pad-left='3' pad-right='-3' pref-height='7'
                                 child-control-width='false' child-expand-width='false'>
+                        <checkbox text='Auto-Stop Manual Recordings' value='AutoStopRecord' bind-value='true' apply-on-change='true'
+                                  font-size='4' size-delta-x='50' align='MidlineLeft' italics='false'/>
+                    </horizontal>
+                    
+                    <horizontal pad-left='3' pad-right='-3' pref-height='7'
+                                child-control-width='false' child-expand-width='false'>
                         <text text='Free Disk Space'  align='MidlineLeft' size-delta-x='32'/>
                         <text data='FreeDiskSpace' data-format='#,0 MB' overflow-mode='Overflow' align='MidlineLeft' size-delta-x='50'/>
                     </horizontal>

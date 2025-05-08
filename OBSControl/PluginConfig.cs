@@ -15,6 +15,7 @@ internal class PluginConfig
     public virtual string? ServerPassword { get; set; } = string.Empty;
     
     public bool AutoRecord { get; set; } = true;
+    public bool AutoStopRecord { get; set; }
     public virtual bool UseSceneTransitions { get; set; } = true;
 
     private float levelStartDelay = 3f;

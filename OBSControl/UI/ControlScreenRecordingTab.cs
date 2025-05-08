@@ -71,6 +71,16 @@ internal class ControlScreenRecordingTab : IInitializable, IDisposable, INotifyP
         }
     }
 
+    public bool AutoStopRecord
+    {
+        get => pluginConfig.AutoStopRecord;
+        set
+        {
+            pluginConfig.AutoStopRecord = value;
+            OnPropertyChanged();
+        }
+    }
+
     public int FreeDiskSpace { get; set; } = 1024;
     
     public string CurrentScene { get; set; } = "Scene";

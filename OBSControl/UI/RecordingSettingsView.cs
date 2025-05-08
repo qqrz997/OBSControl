@@ -23,6 +23,16 @@ internal class RecordingSettingsView : INotifyPropertyChanged
         }
     }
 
+    public bool AutoStopRecord
+    {
+        get => pluginConfig.AutoStopRecord;
+        set
+        {
+            pluginConfig.AutoStopRecord = value;
+            OnPropertyChanged();
+        }
+    }
+
     public bool UseSceneTransitions
     {
         get => pluginConfig.UseSceneTransitions;

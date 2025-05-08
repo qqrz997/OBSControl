@@ -8,13 +8,21 @@ namespace OBSControl.HarmonyPatches;
 
 internal class StandardLevelEndHook : IAffinity
 {
+    private readonly PluginConfig pluginConfig;
     private readonly RecordingManager recordingManager;
     private readonly PlayerDataModel playerDataModel;
+    private readonly GameplayModifiersModelSO gameplayModifiersModel;
 
-    public StandardLevelEndHook(RecordingManager recordingManager, PlayerDataModel playerDataModel)
+    public StandardLevelEndHook(
+        PluginConfig pluginConfig,
+        RecordingManager recordingManager,
+        PlayerDataModel playerDataModel,
+        PrepareLevelCompletionResults prepareLevelCompletionResults)
     {
+        this.pluginConfig = pluginConfig;
         this.recordingManager = recordingManager;
         this.playerDataModel = playerDataModel;
+        gameplayModifiersModel = prepareLevelCompletionResults._gameplayModifiersModelSO;
     }
 
     [AffinityPatch(typeof(GameplayLevelSceneTransitionEvents), nameof(GameplayLevelSceneTransitionEvents.HandleStandardLevelDidFinish))]
@@ -22,12 +30,25 @@ internal class StandardLevelEndHook : IAffinity
         StandardLevelScenesTransitionSetupDataSO standardLevelScenesTransitionSetupData,
         LevelCompletionResults levelCompletionResults)
     {
+        if (!pluginConfig.Enabled)
+        {
+            return;
+        }
+
+        if (pluginConfig is
+            {
+                AutoRecord: false,
+                AutoStopRecord: false
+            })
+        {
+            return;
+        }
+
         var playCount = playerDataModel.playerData.GetOrCreatePlayerLevelStatsData(
             standardLevelScenesTransitionSetupData.beatmapLevel.levelID,
             standardLevelScenesTransitionSetupData.beatmapKey.difficulty,
             standardLevelScenesTransitionSetupData.beatmapKey.beatmapCharacteristic).playCount;
         
-        var gameplayModifiersModel = Resources.FindObjectsOfTypeAll<GameplayModifiersModelSO>().First();
         var transformedBeatmapData = standardLevelScenesTransitionSetupData.transformedBeatmapData;
         var gameplayModifiers =  standardLevelScenesTransitionSetupData.gameplayModifiers;
         
