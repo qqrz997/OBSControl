@@ -73,6 +73,12 @@
                         <text data='CurrentScene' overflow-mode='Ellipsis' rich-text='false'
                               align='MidlineLeft' size-delta-x='50'/>
                     </horizontal>
+
+                    <horizontal pad-left='3' pad-right='-3' pref-height='7'
+                                child-control-width='false' child-expand-width='false'>
+                        <text text='CPU Usage' align='MidlineLeft' size-delta-x='32'/>
+                        <text data='CpuUsage' overflow-mode='Overflow' align='MidlineLeft' size-delta-x='25'/>
+                    </horizontal>
                     
                 </vertical>
             </macro.as-host>
@@ -105,12 +111,6 @@
                                 child-control-width='false' child-expand-width='false'>
                         <text text='Bitrate'  align='MidlineLeft' size-delta-x='32'/>
                         <text data='Bitrate' data-format='#,0.00 Mbps' overflow-mode='Overflow' align='MidlineLeft' size-delta-x='25'/>
-                    </horizontal>
-                    
-                    <horizontal pad-left='3' pad-right='-3' pref-height='7'
-                                child-control-width='false' child-expand-width='false'>
-                        <text text='Strain'  align='MidlineLeft' size-delta-x='32'/>
-                        <text data='Strain' data-format='P' overflow-mode='Overflow' align='MidlineLeft' size-delta-x='25'/>
                     </horizontal>
                     
                     <horizontal pad-left='3' pad-right='-3' pref-height='7' min-width='50'

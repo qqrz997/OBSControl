@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using BeatSaberMarkupLanguage.Attributes;
 using OBSControl.Managers;
 using OBSControl.UI.Formatters;
 using OBSWebsocketDotNet;
@@ -36,9 +35,12 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
         eventManager.SceneChanged += SceneChanged;
         eventManager.RecordingStateChanged += RecordingStateChanged;
         eventManager.StreamingStateChanged += StreamingStateChanged;
+        eventManager.CpuUsageChanged += CpuUsageChanged;
+        ConnectionStateChanged(obsWebsocket.IsConnected);
         SceneChanged(eventManager.CurrentScene);
         RecordingStateChanged(eventManager.RecordingState);
         StreamingStateChanged(eventManager.StreamingState);
+        CpuUsageChanged(eventManager.CpuUsage);
     }
 
     public void Dispose()
@@ -47,15 +49,7 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
         eventManager.SceneChanged -= SceneChanged;
         eventManager.RecordingStateChanged -= RecordingStateChanged;
         eventManager.StreamingStateChanged -= StreamingStateChanged;
-    }
-
-    [UIAction("#post-parse")]
-    public void PostParse()
-    {
-        ConnectionStateChanged(obsWebsocket.IsConnected);
-        SceneChanged(eventManager.CurrentScene);
-        RecordingStateChanged(eventManager.RecordingState);
-        StreamingStateChanged(eventManager.StreamingState);
+        eventManager.CpuUsageChanged -= CpuUsageChanged;
     }
 
     public BoolFormatter BoolFormatter { get; }
@@ -128,13 +122,24 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
         }
     }
 
-    private string currentScene = string.Empty;
+    private string currentScene = "Unknown";
     public string CurrentScene
     {
         get => currentScene;
         set
         {
             currentScene = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private string cpuUsage = "Unknown";
+    public string CpuUsage
+    {
+        get => cpuUsage;
+        set
+        {
+            cpuUsage = value;
             OnPropertyChanged();
         }
     }
@@ -177,7 +182,10 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
         _ => IsRecording
     };
 
-    // private void ObsHeartBeatChanged(HeartBeatEventArgs e) => RenderMissedFrames = e.Stats.RenderMissedFrames;
+    private void CpuUsageChanged(float usage)
+    {
+        CpuUsage = $"{usage:F2} %";
+    }
     
     public event PropertyChangedEventHandler? PropertyChanged;
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)

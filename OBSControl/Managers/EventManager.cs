@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using OBSControl.Utilities;
 using OBSWebsocketDotNet;
 using OBSWebsocketDotNet.Communication;
@@ -21,6 +23,8 @@ internal class EventManager : IInitializable, IDisposable
         this.pluginConfig = pluginConfig;
         this.obsWebsocket = obsWebsocket;
     }
+
+    private CancellationTokenSource pollStatsTokenSource = new();
     
     public event Action<bool>? ConnectionStateChanged; 
     public event Action<string>? SceneChanged; 
@@ -28,11 +32,13 @@ internal class EventManager : IInitializable, IDisposable
     public event Action<OutputState>? RecordingStateChanged;
     public event Action<OutputState>? StreamingStateChanged;
     public event Action<long>? DriveSpaceUpdated;
+    public event Action<float>? CpuUsageChanged;
 
     public string CurrentScene { get; private set; } = "Unknown";
-    public long DriveSpace { get; private set; } = 0;
+    public long DriveSpace { get; private set; }
     public OutputState RecordingState { get; private set; } = OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED;
     public OutputState StreamingState { get; private set; } = OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED;
+    public float CpuUsage { get; private set; }
 
     public void Initialize()
     {
@@ -63,12 +69,19 @@ internal class EventManager : IInitializable, IDisposable
         UpdateAvailableDriveSpace();
         UpdateRecordingState();
         UpdateStreamingState();
+
+        pollStatsTokenSource.Cancel();
+        pollStatsTokenSource.Dispose();
+        pollStatsTokenSource = new();
+        Task.Run(() => RepeatPollCpuUsage(pollStatsTokenSource.Token));
     }
     
     private void ObsDisconnected(object sender, ObsDisconnectionInfo disconnectionInfo)
     {
         Plugin.Log.Info($"OBS Disconnected: {disconnectionInfo.WebsocketDisconnectionInfo.CloseStatusDescription}");
         ConnectionStateChanged?.Invoke(false);
+        
+        pollStatsTokenSource.Cancel();
     }
 
     private void ObsCurrentProgramSceneChanged(object sender, ProgramSceneChangedEventArgs e)
@@ -148,5 +161,21 @@ internal class EventManager : IInitializable, IDisposable
     {
         StreamingState = obsWebsocket.GetStreamStatus().IsActive ? OutputState.OBS_WEBSOCKET_OUTPUT_STARTED : OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED;
         StreamingStateChanged?.Invoke(StreamingState);
+    }
+    
+    private async Task RepeatPollCpuUsage(CancellationToken token)
+    {
+        const int interval = 4000;
+        
+        try
+        {
+            while (!token.IsCancellationRequested && obsWebsocket.IsConnected)
+            {
+                CpuUsage = (float)obsWebsocket.GetStats().CpuUsage;
+                CpuUsageChanged?.Invoke(CpuUsage);
+                await Task.Delay(interval, token);
+            }
+        }
+        catch (OperationCanceledException) { }
     }
 }
