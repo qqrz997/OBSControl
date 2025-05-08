@@ -61,6 +61,8 @@ internal class EventManager : IInitializable, IDisposable
         
         UpdateSceneList();
         UpdateAvailableDriveSpace();
+        UpdateRecordingState();
+        UpdateStreamingState();
     }
     
     private void ObsDisconnected(object sender, ObsDisconnectionInfo disconnectionInfo)
@@ -134,5 +136,17 @@ internal class EventManager : IInitializable, IDisposable
         {
             Plugin.Log.Error($"Encountered a problem while trying to update available drive space: {ex}");
         }
+    }
+
+    private void UpdateRecordingState()
+    {
+        RecordingState = obsWebsocket.GetRecordStatus().IsRecording ? OutputState.OBS_WEBSOCKET_OUTPUT_STARTED : OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED;
+        RecordingStateChanged?.Invoke(RecordingState);
+    }
+
+    private void UpdateStreamingState()
+    {
+        StreamingState = obsWebsocket.GetStreamStatus().IsActive ? OutputState.OBS_WEBSOCKET_OUTPUT_STARTED : OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED;
+        StreamingStateChanged?.Invoke(StreamingState);
     }
 }

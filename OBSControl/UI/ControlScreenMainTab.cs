@@ -36,6 +36,9 @@ internal class ControlScreenMainTab : IInitializable, IDisposable, INotifyProper
         eventManager.SceneChanged += SceneChanged;
         eventManager.RecordingStateChanged += RecordingStateChanged;
         eventManager.StreamingStateChanged += StreamingStateChanged;
+        SceneChanged(eventManager.CurrentScene);
+        RecordingStateChanged(eventManager.RecordingState);
+        StreamingStateChanged(eventManager.StreamingState);
     }
 
     public void Dispose()
