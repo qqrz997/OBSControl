@@ -47,10 +47,12 @@ internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyP
         streamingManager.StreamStatusChanged -= StreamStatusChanged;
     }
 
-    private void StreamStatusChanged(StreamStatusChangedEventArgs status)
+    private void StreamStatusChanged(StreamStatusChangedEventArgs args)
     {
-        StreamTime = (int)(status.StreamDuration / 1000);
-        Bitrate = status.Bitrate / 1048576f;
+        StreamTime = (int)(args.Status.Duration / 1000);
+        Bitrate = args.Bitrate / 1048576f;
+        StreamingOutputFrames = $"{args.Status.TotalFrames}";
+        StreamingDroppedFrames = $"{args.Status.SkippedFrames}";
     }
 
     private void SceneChanged(string sceneName) => CurrentScene = sceneName;
@@ -147,8 +149,8 @@ internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyP
         }
     }
 
-    private int streamingOutputFrames;
-    public int StreamingOutputFrames
+    private string streamingOutputFrames = "0";
+    public string StreamingOutputFrames
     {
         get => streamingOutputFrames;
         set
@@ -158,8 +160,8 @@ internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyP
         }
     }
 
-    private int streamingDroppedFrames;
-    public int StreamingDroppedFrames
+    private string streamingDroppedFrames = "0";
+    public string StreamingDroppedFrames
     {
         get => streamingDroppedFrames;
         set

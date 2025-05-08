@@ -81,7 +81,7 @@ internal class StreamingManager : IInitializable, IDisposable
                 var bitrate = (bytes - lastBytesSent) / (interval / 1000) * 8;
                 lastBytesSent = bytes;
 
-                StreamStatusChanged?.Invoke(new(bitrate, duration));
+                StreamStatusChanged?.Invoke(new(status, bitrate));
                 await Task.Delay(interval, token);
             }
         }
