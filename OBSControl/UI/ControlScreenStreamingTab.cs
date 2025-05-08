@@ -36,6 +36,8 @@ internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyP
         eventManager.StreamingStateChanged += StreamingStateChanged;
         eventManager.SceneChanged += SceneChanged;
         streamingManager.StreamStatusChanged += StreamStatusChanged;
+        StreamingStateChanged(eventManager.StreamingState);
+        SceneChanged(eventManager.CurrentScene);
     }
 
     public void Dispose()
