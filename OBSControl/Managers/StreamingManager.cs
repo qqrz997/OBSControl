@@ -76,10 +76,9 @@ internal class StreamingManager : IInitializable, IDisposable
             while (!token.IsCancellationRequested && obsWebsocket.IsConnected)
             {
                 var status = obsWebsocket.GetStreamStatus();
-                var (bytes, duration) = (status.BytesSent, status.Duration);
                 
-                var bitrate = (bytes - lastBytesSent) / (interval / 1000) * 8;
-                lastBytesSent = bytes;
+                var bitrate = (status.BytesSent - lastBytesSent) / (interval / 1000) * 8;
+                lastBytesSent = status.BytesSent;
 
                 StreamStatusChanged?.Invoke(new(status, bitrate));
                 await Task.Delay(interval, token);

@@ -180,19 +180,19 @@
                         <text data='CurrentScene' overflow-mode='Ellipsis' rich-text='false'
                               align='MidlineLeft' size-delta-x='50'/>
                     </horizontal>
-                    
+
                     <horizontal preferred-width='95' pad-left='3' pad-right='-3' pref-height='7'
-                                horizontal-fit='PreferredSize' child-expand-width='false' child-control-width='false'>
-                        <horizontal pref-height='7' min-width='40' horizontal-fit='MinSize'
-                                    child-control-width='false'>
-                            <text text='Total Frames'  align='MidlineLeft' size-delta-x='25'/>
-                            <text data='RecordingOutputFrames' data-format='#,0' align='MidlineLeft' size-delta-x='17'/>
+                                horizontal-fit='PreferredSize' child-expand-width='false' child-control-width='false' >
+                        <horizontal pref-height='7'  child-expand-width='true' child-control-width='false'
+                                    min-width='40' horizontal-fit='MinSize'>
+                            <text text='Duration'  align='MidlineLeft' size-delta-x='25'/>
+                            <text data='RecordTime' data-format='%h\h\:%m\m\:%s\s' data-formatter='TimeFormatter' overflow-mode='Overflow' align='MidlineLeft' size-delta-x='17'/>
                         </horizontal>
                         <text text=' | ' size-delta-x='8' align='Midline' overflow-mode='Truncate'/>
                         <horizontal pad-left='3' pref-height='7' min-width='44' horizontal-fit='MinSize'
-                                    child-control-width='false'>
-                            <text text='Skipped Frames'  align='MidlineLeft' size-delta-x='25'/>
-                            <text data='OutputSkippedFrames' data-format='#,0' align='MidlineLeft' size-delta-x='17'/>
+                                    child-expand-width='true' child-control-width='false'>
+                            <text text='Bitrate'  align='MidlineLeft' size-delta-x='25'/>
+                            <text data='Bitrate' data-format='#,0.00 Mbps' overflow-mode='Overflow' align='MidlineLeft' size-delta-x='17'/>
                         </horizontal>
                     </horizontal>
                     

@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using OBSControl.Managers;
+using OBSControl.Models;
 using OBSControl.UI.Formatters;
 using OBSControl.Utilities;
 using OBSWebsocketDotNet;
@@ -23,7 +24,7 @@ internal class ControlScreenRecordingTab : IInitializable, IDisposable, INotifyP
         PluginConfig pluginConfig,
         EventManager eventManager,
         RecordingManager recordingManager,
-        BoolFormatter boolFormatter)
+        BoolFormatter boolFormatter, TimeFormatter timeFormatter)
     {
         this.obsWebsocket = obsWebsocket;
         this.pluginConfig = pluginConfig;
@@ -31,6 +32,7 @@ internal class ControlScreenRecordingTab : IInitializable, IDisposable, INotifyP
         this.recordingManager = recordingManager;
         
         BoolFormatter = boolFormatter;
+        TimeFormatter = timeFormatter;
     }
 
     public void Initialize()
@@ -38,9 +40,11 @@ internal class ControlScreenRecordingTab : IInitializable, IDisposable, INotifyP
         eventManager.RecordingStateChanged += RecordingStateChanged;
         eventManager.DriveSpaceUpdated += DriveSpaceUpdated;
         eventManager.SceneChanged += SceneChanged;
+        recordingManager.RecordStatusChanged += RecordStatusChanged;
         RecordingStateChanged(eventManager.RecordingState);
         DriveSpaceUpdated(eventManager.DriveSpace);
         SceneChanged(eventManager.CurrentScene);
+        if (recordingManager.CurrentRecordingStatus != null) RecordStatusChanged(recordingManager.CurrentRecordingStatus);
     }
 
     public void Dispose()
@@ -51,6 +55,7 @@ internal class ControlScreenRecordingTab : IInitializable, IDisposable, INotifyP
     }
     
     public BoolFormatter BoolFormatter { get; }
+    public TimeFormatter TimeFormatter { get; }
 
     private bool isRecording;
 
@@ -110,10 +115,6 @@ internal class ControlScreenRecordingTab : IInitializable, IDisposable, INotifyP
             OnPropertyChanged();
         }
     }
-    
-    public int RecordingOutputFrames { get; set; } = 6;
-    
-    public int OutputSkippedFrames { get; set; } = 7;
 
     private bool recordButtonInteractable = true;
     public bool RecordButtonInteractable
@@ -133,6 +134,28 @@ internal class ControlScreenRecordingTab : IInitializable, IDisposable, INotifyP
         set
         {
             recordButtonText = value;
+            OnPropertyChanged();
+        }
+    }
+
+    private int recordTime;
+    public int RecordTime
+    {
+        get => recordTime;
+        set
+        {
+            recordTime = value;
+            OnPropertyChanged();
+        }
+    }
+    
+    private float bitrate;
+    public float Bitrate
+    {
+        get => bitrate;
+        set
+        {
+            bitrate = value;
             OnPropertyChanged();
         }
     }
@@ -172,6 +195,12 @@ internal class ControlScreenRecordingTab : IInitializable, IDisposable, INotifyP
     private void SceneChanged(string sceneName)
     {
         CurrentScene = sceneName;
+    }
+
+    private void RecordStatusChanged(RecordStatusChangedEventArgs args)
+    {
+        RecordTime = (int)(args.Status.RecordingDuration / 1000);
+        Bitrate = args.Bitrate / 1048576f;
     }
     
     public event PropertyChangedEventHandler? PropertyChanged;

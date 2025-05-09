@@ -47,23 +47,6 @@ internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyP
         streamingManager.StreamStatusChanged -= StreamStatusChanged;
     }
 
-    private void StreamStatusChanged(StreamStatusChangedEventArgs args)
-    {
-        StreamTime = (int)(args.Status.Duration / 1000);
-        Bitrate = args.Bitrate / 1048576f;
-        StreamingOutputFrames = $"{args.Status.TotalFrames}";
-        StreamingDroppedFrames = $"{args.Status.SkippedFrames}";
-    }
-
-    private void SceneChanged(string sceneName) => CurrentScene = sceneName;
-
-    private void StreamingStateChanged(OutputState outputState) => IsStreaming = outputState switch
-    {
-        OutputState.OBS_WEBSOCKET_OUTPUT_STARTED => true,
-        OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED => false,
-        _ => isStreaming
-    };
-
     public BoolFormatter BoolFormatter { get; }
     public TimeFormatter TimeFormatter { get; }
 
@@ -127,17 +110,6 @@ internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyP
         }
     }
 
-    private float strain;
-    public float Strain
-    {
-        get => strain;
-        set
-        {
-            strain = value;
-            OnPropertyChanged();
-        }
-    }
-
     private string currentScene = string.Empty;
     public string CurrentScene
     {
@@ -190,6 +162,23 @@ internal class ControlScreenStreamingTab : IInitializable, IDisposable, INotifyP
             StreamButtonInteractable = true;
         }
     }
+
+    private void StreamStatusChanged(StreamStatusChangedEventArgs args)
+    {
+        StreamTime = (int)(args.Status.Duration / 1000);
+        Bitrate = args.Bitrate / 1048576f;
+        StreamingOutputFrames = $"{args.Status.TotalFrames}";
+        StreamingDroppedFrames = $"{args.Status.SkippedFrames}";
+    }
+
+    private void SceneChanged(string sceneName) => CurrentScene = sceneName;
+
+    private void StreamingStateChanged(OutputState outputState) => IsStreaming = outputState switch
+    {
+        OutputState.OBS_WEBSOCKET_OUTPUT_STARTED => true,
+        OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED => false,
+        _ => isStreaming
+    };
 
     public event PropertyChangedEventHandler? PropertyChanged;
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using OBSControl.Models;
 using OBSControl.Utilities;
@@ -31,6 +32,11 @@ internal class RecordingManager : IInitializable, IDisposable
     private bool recordingCurrentLevel;
     private string? newRecordingFilename;
     private string? lastRecordingFilename;
+    private CancellationTokenSource recordStatusTokenSource = new();
+    
+    public event Action<RecordStatusChangedEventArgs>? RecordStatusChanged;
+    
+    public RecordStatusChangedEventArgs? CurrentRecordingStatus { get; private set; }
 
     public void Initialize()
     {
@@ -43,8 +49,9 @@ internal class RecordingManager : IInitializable, IDisposable
         if (!recordingCurrentLevel) return;
         lastRecordingFilename = obsWebsocket.StopRecord();
         recordingCurrentLevel = false;
+        StopPollingRecordStatus();
     }
-
+    
     public void ManualToggleRecording()
     {
         if (!obsWebsocket.IsConnected) return;
@@ -157,30 +164,31 @@ internal class RecordingManager : IInitializable, IDisposable
         Plugin.Log.Debug($"Recording State Changed: {type}");
         switch (type)
         {
-            case OutputState.OBS_WEBSOCKET_OUTPUT_STARTING or OutputState.OBS_WEBSOCKET_OUTPUT_STARTED:
+            case OutputState.OBS_WEBSOCKET_OUTPUT_STARTING:
                 recordingCurrentLevel = true;
+                break;
+            case OutputState.OBS_WEBSOCKET_OUTPUT_STARTED:
+                recordingCurrentLevel = true;
+                StartPollingRecordStatus();
                 break;
             case OutputState.OBS_WEBSOCKET_OUTPUT_STOPPING:
                 recordingCurrentLevel = false;
                 break;
             case OutputState.OBS_WEBSOCKET_OUTPUT_STOPPED:
                 recordingCurrentLevel = false;
-                HandleRecordingStopped();
+                StopPollingRecordStatus();
+                if (newRecordingFilename is not null)
+                {
+                    RenameLastRecording(newRecordingFilename);
+                    newRecordingFilename = null;
+                }
+
                 break;
             case OutputState.OBS_WEBSOCKET_OUTPUT_PAUSED:
             case OutputState.OBS_WEBSOCKET_OUTPUT_RESUMED:
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(type), type, null);
-        }
-    }
-
-    private void HandleRecordingStopped()
-    {
-        if (newRecordingFilename is not null)
-        {
-            RenameLastRecording(newRecordingFilename);
-            newRecordingFilename = null;
         }
     }
 
@@ -233,6 +241,45 @@ internal class RecordingManager : IInitializable, IDisposable
         catch (Exception ex)
         {
             Plugin.Log.Error($"Encountered an error while trying to rename last recording: {ex}");
+        }
+    }
+
+    private void StartPollingRecordStatus()
+    {
+        recordStatusTokenSource = new();
+        Task.Run(() => RepeatPollRecordStatus(recordStatusTokenSource.Token));
+    }
+
+    private void StopPollingRecordStatus()
+    {
+        recordStatusTokenSource.Cancel();
+        recordStatusTokenSource.Dispose();
+    }
+
+    private long lastRecordingBytes;
+    
+    private async Task RepeatPollRecordStatus(CancellationToken token)
+    {
+        const int interval = 2500;
+
+        try
+        {
+            while (!token.IsCancellationRequested && obsWebsocket.IsConnected)
+            {
+                var status = obsWebsocket.GetRecordStatus();
+                
+                var bitrate = (status.RecordingBytes - lastRecordingBytes) / (interval / 1000) * 8;
+                lastRecordingBytes = status.RecordingBytes;
+
+                CurrentRecordingStatus = new(status, bitrate);
+                RecordStatusChanged?.Invoke(CurrentRecordingStatus);
+                await Task.Delay(interval, token);
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            Plugin.Log.Error($"Encountered a problem while polling record status: {ex}");
         }
     }
 }
