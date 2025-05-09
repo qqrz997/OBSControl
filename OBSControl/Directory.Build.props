@@ -7,7 +7,7 @@
         <PluginId>OBSControl</PluginId>
         <PluginName>OBSControl</PluginName>
         <Authors>Zingabopp</Authors>
-        <Version>1.2.2</Version>
+        <Version>2.0.0</Version>
         <GameVersion>1.40.4</GameVersion>
         <Description>Automatically record videos using OBS Websocket.</Description>
         <ProjectSource>https://github.com/qqrz997/OBSControl</ProjectSource>
