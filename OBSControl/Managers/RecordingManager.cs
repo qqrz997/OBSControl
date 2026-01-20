@@ -30,8 +30,10 @@ internal class RecordingManager : IInitializable, IDisposable
     }
     
     private bool recordingCurrentLevel;
+    private bool restartRecording;
     private string? newRecordingFilename;
     private string? lastRecordingFilename;
+    private CancellationTokenSource restartRecordTokenSource = new();
     private CancellationTokenSource recordStatusTokenSource = new();
     
     public event Action<RecordStatusChangedEventArgs>? RecordStatusChanged;
@@ -46,6 +48,8 @@ internal class RecordingManager : IInitializable, IDisposable
     public void Dispose()
     {
         eventManager.RecordingStateChanged -= RecordingStateChanged;
+        restartRecordTokenSource.Cancel();
+        restartRecordTokenSource.Dispose();
         if (!recordingCurrentLevel) return;
         lastRecordingFilename = obsWebsocket.StopRecord();
         recordingCurrentLevel = false;
@@ -111,10 +115,18 @@ internal class RecordingManager : IInitializable, IDisposable
                 pluginConfig.RecordingFileFormat, levelData, levelCompletionResults, 
                 pluginConfig.InvalidCharacterSubstitute, pluginConfig.ReplaceSpacesWith);
 
-            if (recordingCurrentLevel)
+            if (!recordingCurrentLevel) return;
+
+            var restartAction = pluginConfig.RestartAction;
+
+            if (levelCompletionResults.LevelEndAction is LevelCompletionResults.LevelEndAction.Restart
+                && restartAction is RestartAction.ContinueRecording)
             {
-                Task.Run(StopRecording);
+                // Keep recording and do nothing
+                return;
             }
+
+            Task.Run(() => StopRecording(restartAction is RestartAction.RestartRecording));
         }
         catch (Exception ex)
         {
@@ -122,12 +134,18 @@ internal class RecordingManager : IInitializable, IDisposable
         }
     }
 
-    private async Task StopRecording()
+    private async Task StopRecording(bool restart)
     {
         if (!obsWebsocket.IsConnected) return;
-        
         try
         {
+            if (restart)
+            {
+                lastRecordingFilename = obsWebsocket.StopRecord();
+                restartRecording = true;
+                return;
+            }
+            
             await Task.Delay(TimeSpan.FromSeconds(pluginConfig.RecordingStopDelay));
             if (!pluginConfig.UseSceneTransitions)
             {
@@ -154,8 +172,20 @@ internal class RecordingManager : IInitializable, IDisposable
         }
     }
 
+    private async Task StartRecordingWhenFinished(int timeout, CancellationToken token)
+    {
+        while (obsWebsocket.IsConnected && obsWebsocket.GetRecordStatus().IsRecording)
+        {
+            if (timeout <= 0 || token.IsCancellationRequested) return;
+            timeout -= 250;
+            await Task.Delay(250, token);
+        }
+        StartRecording();
+    }
+    
     private void StartRecording()
     {
+        Plugin.Log.Debug("Attempting to start recording...");
         if (obsWebsocket.IsConnected && !obsWebsocket.GetRecordStatus().IsRecording) obsWebsocket.StartRecord();
     }
 
@@ -182,7 +212,15 @@ internal class RecordingManager : IInitializable, IDisposable
                     RenameLastRecording(newRecordingFilename);
                     newRecordingFilename = null;
                 }
-
+                if (restartRecording)
+                {
+                    restartRecording = false;
+                    restartRecordTokenSource.Cancel();
+                    restartRecordTokenSource.Dispose();
+                    restartRecordTokenSource = new();
+                    // Restart has to be delayed because the websocket doesn't update status before state change
+                    Task.Run(() => StartRecordingWhenFinished(4000, restartRecordTokenSource.Token));
+                }
                 break;
             case OutputState.OBS_WEBSOCKET_OUTPUT_PAUSED:
             case OutputState.OBS_WEBSOCKET_OUTPUT_RESUMED:

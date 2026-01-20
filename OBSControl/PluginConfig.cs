@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using IPA.Config.Stores;
+using OBSControl.Models;
 using UnityEngine;
 
 [assembly: InternalsVisibleTo(GeneratedStore.AssemblyVisibilityTarget)]
@@ -14,8 +15,9 @@ internal class PluginConfig
     public virtual string? WsPort { get; set; } = "4455";
     public virtual string? ServerPassword { get; set; } = string.Empty;
     
-    public bool AutoRecord { get; set; } = true;
-    public bool AutoStopRecord { get; set; }
+    public virtual bool AutoRecord { get; set; } = true;
+    public virtual bool AutoStopRecord { get; set; }
+    public virtual RestartAction RestartAction { get; set; } = RestartAction.StopRecording;
     public virtual bool UseSceneTransitions { get; set; } = true;
 
     private float levelStartDelay = 3f;
@@ -52,7 +54,7 @@ internal class PluginConfig
     }
 
     private float endSceneDelay;
-    public float EndSceneDelay
+    public virtual float EndSceneDelay
     {
         get => endSceneDelay;
         set => endSceneDelay = value < 0 ? 0f : (float)Math.Round(value, 1);
