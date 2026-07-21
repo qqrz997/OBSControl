@@ -18,9 +18,12 @@ internal class ExtendedLevelData
         SongDuration = beatmapLevel.songDuration;
         Difficulty = beatmapKey.difficulty;
         DifficultyRank = (int)beatmapKey.difficulty;
-        var beatmapBasicData = beatmapLevel.GetDifficultyBeatmapData(beatmapKey.beatmapCharacteristic, beatmapKey.difficulty);
-        NoteJumpMovementSpeed = beatmapBasicData.noteJumpMovementSpeed;
-        NoteJumpStartBeatOffset = beatmapBasicData.noteJumpStartBeatOffset;
+        var beatmapBasicData = beatmapLevel.GetDifficultyBeatmapData(beatmapKey.characteristic, beatmapKey.difficulty);
+        if (beatmapBasicData != null)
+        {
+            NoteJumpMovementSpeed = beatmapBasicData.noteJumpMovementSpeed;
+            NoteJumpStartBeatOffset = beatmapBasicData.noteJumpStartBeatOffset;
+        }
     }
         
     public string LevelID { get; }

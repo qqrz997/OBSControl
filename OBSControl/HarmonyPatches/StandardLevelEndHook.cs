@@ -28,15 +28,19 @@ internal class StandardLevelEndHook : IAffinity
 
     [AffinityPatch(typeof(GameplayLevelSceneTransitionEvents), nameof(GameplayLevelSceneTransitionEvents.HandleStandardLevelDidFinish))]
     public void StandardLevelDidFinish(
-        StandardLevelScenesTransitionSetupDataSO standardLevelScenesTransitionSetupData,
+        StandardLevelScenesTransitionSetupData standardLevelScenesTransitionSetupData,
         LevelCompletionResults levelCompletionResults)
     {
-        if (!pluginConfig.ShouldAutoStopRecording()) return;
+        if (!pluginConfig.ShouldAutoStopRecording() 
+            || standardLevelScenesTransitionSetupData.beatmapLevel is null)
+        {
+            return;
+        }
 
         var playCount = playerDataModel.playerData.GetOrCreatePlayerLevelStatsData(
             standardLevelScenesTransitionSetupData.beatmapLevel.levelID,
             standardLevelScenesTransitionSetupData.beatmapKey.difficulty,
-            standardLevelScenesTransitionSetupData.beatmapKey.beatmapCharacteristic).playCount;
+            standardLevelScenesTransitionSetupData.beatmapKey.characteristic).playCount;
         
         var transformedBeatmapData = standardLevelScenesTransitionSetupData.transformedBeatmapData;
         var gameplayModifiers =  standardLevelScenesTransitionSetupData.gameplayModifiers;
